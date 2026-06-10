@@ -835,24 +835,28 @@ $('discount-amount').addEventListener('input', recalcTotals);
 async function loadInvoices() {
   if (!SHEET_URL) {
     showToast('No Sheet URL set — open Settings first', 'error');
+    $('invoices-container').innerHTML = '<div class="invoices-empty"><h3>Sheet URL not configured</h3><p>Open Settings and add your Google Sheet URL to view invoices.</p></div>';
     return;
   }
   const container = $('invoices-container');
   container.innerHTML = '<div class="invoices-loading">Loading invoices...</div>';
   try {
-    const response = await fetch(SHEET_URL + '?action=getInvoices', {
-      method: 'GET',
-      mode: 'no-cors',
-    });
-    const text = await response.text();
-    const data = JSON.parse(text);
+    const url = SHEET_URL.includes('?') ? SHEET_URL + '&action=getInvoices' : SHEET_URL + '?action=getInvoices';
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('HTTP ' + response.status);
+    }
+    const data = await response.json();
     if (data.status === 'ok' && data.invoices && data.invoices.length > 0) {
       displayInvoices(data.invoices);
-    } else {
+    } else if (data.status === 'ok') {
       container.innerHTML = '<div class="invoices-empty"><h3>No invoices yet</h3><p>Create your first invoice to see it here.</p></div>';
+    } else {
+      throw new Error(data.message || 'Unknown error');
     }
   } catch(e) {
-    container.innerHTML = '<div class="invoices-empty"><h3>Error loading invoices</h3><p>Check your Sheet URL in Settings.</p></div>';
+    console.error('Load invoices error:', e);
+    container.innerHTML = '<div class="invoices-empty"><h3>Error loading invoices</h3><p>' + (e.message || 'Check your Sheet URL in Settings.') + '</p></div>';
   }
 }
 
