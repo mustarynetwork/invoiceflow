@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InvoiceFlow — Simple Invoice Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:        #1a1a2e;
+      --ink-light:  #4a4a6a;
+      --surface:    #ffffff;
+      --bg:         #f5f6fa;
+      --accent:     #4361ee;
+      --accent-dark:#3451d1;
+      --success:    #2ec4b6;
+      --danger:     #e63946;
+      --border:     #e0e0ef;
+      --shadow:     0 2px 16px rgba(67,97,238,0.08);
+      --radius:     12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      font-size: 15px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--accent); letter-spacing: -0.5px; }
+    .brand span { color: var(--ink); }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+
+    /* ── CONFIG BANNER ── */
+    #config-banner {
+      background: #fff8e1;
+      border-bottom: 2px solid #ffd54f;
+      padding: 10px 24px;
+      font-size: 13px;
+      color: #6d4c00;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    #config-banner strong { color: #e65100; }
+    #config-banner a { color: var(--accent); font-weight: 600; }
+    .config-close { margin-left: auto; cursor: pointer; font-size: 18px; color: #999; background: none; border: none; }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 28px 16px 60px; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--ink-light);
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── INVOICE META STRIP ── */
+    .meta-strip {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .meta-strip .field { flex: 1; min-width: 140px; }
+
+    /* ── FORM ── */
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-light); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--surface);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(67,97,238,0.1);
+    }
+    .field textarea { resize: vertical; min-height: 72px; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 540px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── LINE ITEMS TABLE ── */
+    .items-header {
+      display: grid;
+      grid-template-columns: 1fr 80px 100px 100px 36px;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--ink-light);
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+    .item-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 100px 100px 36px;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .item-row input {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--ink);
+      outline: none;
+      width: 100%;
+      transition: border-color .2s;
+    }
+    .item-row input:focus { border-color: var(--accent); }
+    .item-row input[readonly] { background: var(--bg); color: var(--ink-light); }
+    .btn-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--danger);
+      font-size: 18px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s;
+    }
+    .btn-remove:hover { background: #fdecea; }
+    @media (max-width: 620px) {
+      .items-header { display: none; }
+      .item-row { grid-template-columns: 1fr 70px 80px 80px 32px; gap: 5px; }
+    }
+
+    /* ── TOTALS ── */
+    .totals-box {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+    .totals-inner { width: 260px; }
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 7px 0;
+      font-size: 14px;
+      color: var(--ink-light);
+      border-bottom: 1px dashed var(--border);
+    }
+    .totals-row.grand {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      border-bottom: none;
+      margin-top: 4px;
+    }
+    .totals-row span:last-child { font-weight: 600; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border-radius: 9px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background .15s, transform .1s, box-shadow .15s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-dark); box-shadow: 0 4px 12px rgba(67,97,238,0.3); }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--ink); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: rgba(67,97,238,0.04); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #28b0a6; }
+    .btn-sm { padding: 7px 14px; font-size: 13px; }
+    .btn-icon { padding: 10px; }
+    .action-bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 10px; }
+
+    /* ── STATUS BADGE ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-draft   { background: #e8eaf6; color: #3949ab; }
+    .badge-sent    { background: #e3f2fd; color: #1565c0; }
+    .badge-paid    { background: #e8f5e9; color: #2e7d32; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .3s;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.success { background: var(--success); }
+    #toast.error   { background: var(--danger); }
+
+    /* ── LOADER ── */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── PRINT STYLES ── */
+    @media print {
+      body { background: white; }
+      header, #config-banner, .action-bar, .btn-remove, #add-item-btn, .card-title { display: none !important; }
+      .card { box-shadow: none; border: none; padding: 0; }
+      .container { padding: 0; max-width: 100%; }
+      .print-invoice { display: block !important; }
+      #invoice-form-section { display: none !important; }
+    }
+
+    /* ── PRINT PREVIEW INVOICE ── */
+    .print-invoice { display: none; }
+    #print-preview {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 40px;
+      margin-bottom: 24px;
+    }
+    .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+    .inv-brand { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--accent); }
+    .inv-meta { text-align: right; }
+    .inv-meta h2 { font-size: 22px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 2px; }
+    .inv-meta p { font-size: 13px; color: var(--ink-light); margin-top: 4px; }
+    .inv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+    .inv-party-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-light); margin-bottom: 6px; }
+    .inv-party-name { font-weight: 700; font-size: 15px; }
+    .inv-party-detail { font-size: 13px; color: var(--ink-light); white-space: pre-line; }
+    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .inv-table th { background: var(--bg); padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-light); }
+    .inv-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .inv-table td.num { text-align: right; }
+    .inv-totals { display: flex; justify-content: flex-end; }
+    .inv-totals table { width: 220px; }
+    .inv-totals td { padding: 5px 8px; font-size: 14px; }
+    .inv-totals td:last-child { text-align: right; font-weight: 600; }
+    .inv-grand td { font-size: 17px; font-weight: 700; border-top: 2px solid var(--ink); padding-top: 10px; }
+    .inv-notes { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 13px; color: var(--ink-light); }
+    .inv-notes strong { display: block; color: var(--ink); margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .inv-accent-bar { height: 4px; background: linear-gradient(90deg, var(--accent), var(--success)); border-radius: 2px; margin-bottom: 32px; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="brand">Invoice<span>Flow</span></div>
+  <div class="header-actions">
+    <button class="btn btn-outline btn-sm" id="btn-settings">⚙ Settings</button>
+  </div>
+</header>
+
+<!-- CONFIG BANNER -->
+<div id="config-banner">
+  <strong>⚠ Setup required:</strong> Add your Google Sheet URL in
+  <a href="#" id="banner-settings-link">Settings</a> to enable saving. You can still create and print invoices without it.
+  <button class="config-close" id="close-banner" title="Dismiss">×</button>
+</div>
+
+<div class="container">
+
+  <!-- INVOICE FORM -->
+  <section id="invoice-form-section">
+
+    <!-- META STRIP -->
+    <div class="card">
+      <div class="card-title">Invoice Details</div>
+      <div class="meta-strip">
+        <div class="field">
+          <label>Invoice #</label>
+          <input type="text" id="inv-number" placeholder="INV-001" />
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="inv-date" />
+        </div>
+        <div class="field">
+          <label>Due Date</label>
+          <input type="date" id="inv-due" />
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="inv-status">
+            <option value="Draft">Draft</option>
+            <option value="Sent">Sent</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Currency</label>
+          <select id="inv-currency">
+            <option value="BDT">৳ BDT</option>
+            <option value="USD">$ USD</option>
+            <option value="EUR">€ EUR</option>
+            <option value="GBP">£ GBP</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- FROM / TO -->
+      <div class="two-col">
+        <div>
+          <div class="card-title" style="margin-bottom:12px">From (Your Business)</div>
+          <div class="field" style="margin-bottom:10px"><label>Business Name</label><input type="text" id="from-name" placeholder="Your Company Ltd." /></div>
+          <div class="field" style="margin-bottom:10px"><label>Email</label><input type="email" id="from-email" placeholder="you@company.com" /></div>
+          <div class="field"><label>Address</label><textarea id="from-address" placeholder="123 Street, City, Country"></textarea></div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:12px">Bill To (Client)</div>
+          <div class="field" style="margin-bottom:10px"><label>Client Name</label><input type="text" id="to-name" placeholder="Client Name" /></div>
+          <div class="field" style="margin-bottom:10px"><label>Email</label><input type="email" id="to-email" placeholder="client@email.com" /></div>
+          <div class="field"><label>Address</label><textarea id="to-address" placeholder="Client address..."></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINE ITEMS -->
+    <div class="card">
+      <div class="card-title">Line Items</div>
+      <div class="items-header">
+        <span>Description</span>
+        <span style="text-align:right">Qty</span>
+        <span style="text-align:right">Unit Price</span>
+        <span style="text-align:right">Amount</span>
+        <span></span>
+      </div>
+      <div id="items-container"></div>
+      <button class="btn btn-outline btn-sm" id="add-item-btn" style="margin-top:8px">+ Add Item</button>
+
+      <div class="totals-box">
+        <div class="totals-inner">
+          <div class="totals-row"><span>Subtotal</span><span id="subtotal">0.00</span></div>
+          <div class="totals-row">
+            <span>Tax (<input type="number" id="tax-rate" value="0" min="0" max="100" style="width:40px;border:none;border-bottom:1px solid var(--border);text-align:center;font-size:13px;outline:none;background:transparent;padding:0">%)</span>
+            <span id="tax-amount">0.00</span>
+          </div>
+          <div class="totals-row">
+            <span>Discount (<input type="number" id="discount-amount" value="0" min="0" style="width:60px;border:none;border-bottom:1px solid var(--border);text-align:center;font-size:13px;outline:none;background:transparent;padding:0">)</span>
+            <span id="discount-display">0.00</span>
+          </div>
+          <div class="totals-row grand"><span>TOTAL</span><span id="grand-total">0.00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="card">
+      <div class="card-title">Notes & Terms</div>
+      <div class="two-col">
+        <div class="field"><label>Notes</label><textarea id="inv-notes" placeholder="Thank you for your business!"></textarea></div>
+        <div class="field"><label>Payment Terms</label><textarea id="inv-terms" placeholder="Payment due within 30 days."></textarea></div>
+      </div>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="action-bar">
+      <button class="btn btn-outline" id="btn-preview">👁 Preview</button>
+      <button class="btn btn-outline" id="btn-save-sheet">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Save to Sheet
+      </button>
+      <button class="btn btn-primary" id="btn-print">🖨 Save / Print PDF</button>
+    </div>
+  </section>
+
+  <!-- PRINT PREVIEW -->
+  <section id="print-preview" style="display:none">
+    <div class="inv-accent-bar"></div>
+    <div class="inv-header">
+      <div>
+        <div class="inv-brand" id="prev-from-name">Your Company</div>
+        <div style="font-size:13px;color:var(--ink-light);margin-top:4px" id="prev-from-detail"></div>
+      </div>
+      <div class="inv-meta">
+        <h2>Invoice</h2>
+        <p id="prev-inv-number"></p>
+        <p id="prev-inv-date"></p>
+        <p id="prev-inv-due"></p>
+        <p id="prev-inv-status"></p>
+      </div>
+    </div>
+    <div class="inv-parties">
+      <div>
+        <div class="inv-party-label">Bill To</div>
+        <div class="inv-party-name" id="prev-to-name"></div>
+        <div class="inv-party-detail" id="prev-to-detail"></div>
+      </div>
+    </div>
+    <table class="inv-table">
+      <thead><tr><th>Description</th><th style="text-align:right">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Amount</th></tr></thead>
+      <tbody id="prev-items"></tbody>
+    </table>
+    <div class="inv-totals">
+      <table>
+        <tr><td>Subtotal</td><td id="prev-sub"></td></tr>
+        <tr><td id="prev-tax-label">Tax</td><td id="prev-tax"></td></tr>
+        <tr><td>Discount</td><td id="prev-disc"></td></tr>
+        <tr class="inv-grand"><td>TOTAL</td><td id="prev-total"></td></tr>
+      </table>
+    </div>
+    <div class="inv-notes" id="prev-notes-block" style="display:none">
+      <strong>Notes</strong>
+      <span id="prev-notes"></span>
+    </div>
+    <div class="inv-notes" id="prev-terms-block" style="display:none">
+      <strong>Payment Terms</strong>
+      <span id="prev-terms"></span>
+    </div>
+
+    <div class="action-bar" style="margin-top:24px">
+      <button class="btn btn-outline" id="btn-back-edit">← Back to Edit</button>
+      <button class="btn btn-primary" id="btn-print-now">🖨 Print / Save PDF</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="settings-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;padding:32px;max-width:480px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.15)">
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:6px">⚙ Settings</h2>
+    <p style="font-size:13px;color:var(--ink-light);margin-bottom:20px">Configure your Google Sheet integration and business defaults.</p>
+
+    <div class="field" style="margin-bottom:14px">
+      <label>Google Sheet Web App URL</label>
+      <input type="url" id="setting-sheet-url" placeholder="https://script.google.com/macros/s/.../exec" />
+      <p style="font-size:11px;color:var(--ink-light);margin-top:4px">From your deployed Google Apps Script. See setup guide below.</p>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label>Default Business Name</label>
+      <input type="text" id="setting-biz-name" placeholder="Your Company Ltd." />
+    </div>
+    <div class="field" style="margin-bottom:20px">
+      <label>Default Business Email</label>
+      <input type="email" id="setting-biz-email" placeholder="you@company.com" />
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-outline" id="close-settings">Cancel</button>
+      <button class="btn btn-primary" id="save-settings">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFIG  —  paste your Sheet URL after deploy
+═══════════════════════════════════════════ */
+let SHEET_URL = localStorage.getItem('sheet_url') || '';
+
+/* ─ helpers ─ */
+const $ = id => document.getElementById(id);
+const fmt = (n, cur) => {
+  const syms = { BDT:'৳', USD:'$', EUR:'€', GBP:'£' };
+  return (syms[cur] || '') + parseFloat(n||0).toFixed(2);
+};
+let itemCount = 0;
+
+function showToast(msg, type='') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  setTimeout(() => t.className = '', 3000);
+}
+
+/* ─ item rows ─ */
+function addItem(desc='', qty=1, price=0) {
+  itemCount++;
+  const id = itemCount;
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.dataset.id = id;
+  row.innerHTML = `
+    <input type="text"   class="item-desc"  placeholder="Service / Product" value="${desc}" />
+    <input type="number" class="item-qty"   placeholder="1"  value="${qty}"  min="0" step="any" style="text-align:right">
+    <input type="number" class="item-price" placeholder="0.00" value="${price}" min="0" step="any" style="text-align:right">
+    <input type="text"   class="item-total" readonly value="${(qty*price).toFixed(2)}" style="text-align:right">
+    <button class="btn-remove" title="Remove">×</button>
+  `;
+  row.querySelector('.item-qty').addEventListener('input', () => recalcRow(row));
+  row.querySelector('.item-price').addEventListener('input', () => recalcRow(row));
+  row.querySelector('.btn-remove').addEventListener('click', () => { row.remove(); recalcTotals(); });
+  $('items-container').appendChild(row);
+  recalcTotals();
+}
+
+function recalcRow(row) {
+  const q = parseFloat(row.querySelector('.item-qty').value) || 0;
+  const p = parseFloat(row.querySelector('.item-price').value) || 0;
+  row.querySelector('.item-total').value = (q * p).toFixed(2);
+  recalcTotals();
+}
+
+function recalcTotals() {
+  const cur = $('inv-currency').value;
+  let sub = 0;
+  document.querySelectorAll('.item-total').forEach(el => sub += parseFloat(el.value) || 0);
+  const taxRate = parseFloat($('tax-rate').value) || 0;
+  const disc    = parseFloat($('discount-amount').value) || 0;
+  const tax     = sub * taxRate / 100;
+  const grand   = sub + tax - disc;
+  $('subtotal').textContent       = fmt(sub, cur);
+  $('tax-amount').textContent     = fmt(tax, cur);
+  $('discount-display').textContent = fmt(disc, cur);
+  $('grand-total').textContent    = fmt(grand, cur);
+}
+
+/* ─ auto-fill defaults from settings ─ */
+function applyDefaults() {
+  const biz   = localStorage.getItem('biz_name') || '';
+  const email = localStorage.getItem('biz_email') || '';
+  if (biz)   $('from-name').value  = biz;
+  if (email) $('from-email').value = email;
+  // auto invoice number
+  const last = parseInt(localStorage.getItem('last_inv_num') || '0') + 1;
+  $('inv-number').value = 'INV-' + String(last).padStart(3, '0');
+  // dates
+  const today = new Date().toISOString().split('T')[0];
+  const due   = new Date(Date.now() + 30*864e5).toISOString().split('T')[0];
+  $('inv-date').value = today;
+  $('inv-due').value  = due;
+}
+
+/* ─ collect form data ─ */
+function collectData() {
+  const items = [];
+  document.querySelectorAll('.item-row').forEach(row => {
+    items.push({
+      desc:  row.querySelector('.item-desc').value,
+      qty:   parseFloat(row.querySelector('.item-qty').value) || 0,
+      price: parseFloat(row.querySelector('.item-price').value) || 0,
+      total: parseFloat(row.querySelector('.item-total').value) || 0,
+    });
+  });
+  const cur = $('inv-currency').value;
+  const sub  = items.reduce((a, i) => a + i.total, 0);
+  const tax  = sub * (parseFloat($('tax-rate').value) || 0) / 100;
+  const disc = parseFloat($('discount-amount').value) || 0;
+  return {
+    number:      $('inv-number').value,
+    date:        $('inv-date').value,
+    dueDate:     $('inv-due').value,
+    status:      $('inv-status').value,
+    currency:    cur,
+    fromName:    $('from-name').value,
+    fromEmail:   $('from-email').value,
+    fromAddress: $('from-address').value,
+    toName:      $('to-name').value,
+    toEmail:     $('to-email').value,
+    toAddress:   $('to-address').value,
+    items,
+    taxRate:     parseFloat($('tax-rate').value) || 0,
+    discount:    disc,
+    subtotal:    sub,
+    taxAmount:   tax,
+    grandTotal:  sub + tax - disc,
+    notes:       $('inv-notes').value,
+    terms:       $('inv-terms').value,
+  };
+}
+
+/* ─ PREVIEW ─ */
+function showPreview() {
+  const d = collectData();
+  const cur = d.currency;
+  const syms = { BDT:'৳', USD:'$', EUR:'€', GBP:'£' };
+  const sym  = syms[cur] || '';
+
+  $('prev-from-name').textContent   = d.fromName || 'Your Company';
+  $('prev-from-detail').textContent = [d.fromEmail, d.fromAddress].filter(Boolean).join(' · ');
+  $('prev-inv-number').textContent  = 'Invoice # ' + d.number;
+  $('prev-inv-date').textContent    = 'Date: ' + d.date;
+  $('prev-inv-due').textContent     = 'Due: ' + d.dueDate;
+  $('prev-inv-status').innerHTML    = `Status: <span class="badge badge-${d.status.toLowerCase()}">${d.status}</span>`;
+  $('prev-to-name').textContent     = d.toName;
+  $('prev-to-detail').textContent   = [d.toEmail, d.toAddress].filter(Boolean).join('\n');
+
+  const tbody = $('prev-items');
+  tbody.innerHTML = '';
+  d.items.forEach(it => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${it.desc||'—'}</td><td class="num">${it.qty}</td><td class="num">${sym}${it.price.toFixed(2)}</td><td class="num">${sym}${it.total.toFixed(2)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  $('prev-sub').textContent  = fmt(d.subtotal, cur);
+  $('prev-tax-label').textContent = `Tax (${d.taxRate}%)`;
+  $('prev-tax').textContent  = fmt(d.taxAmount, cur);
+  $('prev-disc').textContent = fmt(d.discount, cur);
+  $('prev-total').textContent = fmt(d.grandTotal, cur);
+
+  if (d.notes) { $('prev-notes').textContent = d.notes; $('prev-notes-block').style.display = ''; }
+  else { $('prev-notes-block').style.display = 'none'; }
+  if (d.terms) { $('prev-terms').textContent = d.terms; $('prev-terms-block').style.display = ''; }
+  else { $('prev-terms-block').style.display = 'none'; }
+
+  $('invoice-form-section').style.display = 'none';
+  $('print-preview').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+/* ─ SAVE TO SHEET ─ */
+async function saveToSheet() {
+  if (!SHEET_URL) {
+    showToast('No Sheet URL set — open Settings first', 'error');
+    return;
+  }
+  const btn = $('btn-save-sheet');
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  btn.disabled = true;
+  const data = collectData();
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode:   'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    // increment invoice number
+    const cur = parseInt(data.number.replace(/\D/g,'')) || 0;
+    localStorage.setItem('last_inv_num', String(cur));
+    showToast('✓ Saved to Google Sheet!', 'success');
+  } catch(e) {
+    showToast('Save failed — check Sheet URL in Settings', 'error');
+  }
+  btn.innerHTML = '📄 Save to Sheet';
+  btn.disabled = false;
+}
+
+/* ─ PRINT ─ */
+function printInvoice() {
+  showPreview();
+  setTimeout(() => window.print(), 400);
+}
+
+/* ─ SETTINGS ─ */
+function openSettings() {
+  $('setting-sheet-url').value  = localStorage.getItem('sheet_url') || '';
+  $('setting-biz-name').value   = localStorage.getItem('biz_name')  || '';
+  $('setting-biz-email').value  = localStorage.getItem('biz_email') || '';
+  const m = $('settings-modal');
+  m.style.display = 'flex';
+}
+function closeSettings() { $('settings-modal').style.display = 'none'; }
+function saveSettings() {
+  const url   = $('setting-sheet-url').value.trim();
+  const name  = $('setting-biz-name').value.trim();
+  const email = $('setting-biz-email').value.trim();
+  localStorage.setItem('sheet_url', url);
+  localStorage.setItem('biz_name',  name);
+  localStorage.setItem('biz_email', email);
+  SHEET_URL = url;
+  if (name)  $('from-name').value  = name;
+  if (email) $('from-email').value = email;
+  if (url) $('config-banner').style.display = 'none';
+  closeSettings();
+  showToast('Settings saved', 'success');
+}
+
+/* ─ WIRE UP EVENTS ─ */
+$('add-item-btn').addEventListener('click', () => addItem());
+$('btn-preview').addEventListener('click', showPreview);
+$('btn-save-sheet').addEventListener('click', saveToSheet);
+$('btn-print').addEventListener('click', printInvoice);
+$('btn-back-edit').addEventListener('click', () => {
+  $('print-preview').style.display = 'none';
+  $('invoice-form-section').style.display = 'block';
+});
+$('btn-print-now').addEventListener('click', () => window.print());
+$('btn-settings').addEventListener('click', openSettings);
+$('banner-settings-link').addEventListener('click', e => { e.preventDefault(); openSettings(); });
+$('close-banner').addEventListener('click', () => $('config-banner').style.display = 'none');
+$('close-settings').addEventListener('click', closeSettings);
+$('save-settings').addEventListener('click', saveSettings);
+$('settings-modal').addEventListener('click', e => { if(e.target === $('settings-modal')) closeSettings(); });
+$('inv-currency').addEventListener('change', recalcTotals);
+$('tax-rate').addEventListener('input', recalcTotals);
+$('discount-amount').addEventListener('input', recalcTotals);
+
+/* ─ INIT ─ */
+applyDefaults();
+addItem('Service / Product Description', 1, 0);
+if (SHEET_URL) $('config-banner').style.display = 'none';
+</script>
+</body>
+</html>
