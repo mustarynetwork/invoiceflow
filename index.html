@@ -487,11 +487,11 @@
         <div class="totals-inner">
           <div class="totals-row"><span>Subtotal</span><span id="subtotal">0.00</span></div>
           <div class="totals-row">
-            <span>Tax (<input type="number" id="tax-rate" value="0" min="0" max="100" style="width:40px;border:none;border-bottom:1px solid var(--border);text-align:center;font-size:13px;outline:none;background:transparent;padding:0">%)</span>
+            <span>Tax (<input type="number" id="tax-rate" value="0" min="0" max="100" style="width:40px;border:none;border-bottom:1px solid var(--border);text-align:center;font-size:13px;outline:none;[...]
             <span id="tax-amount">0.00</span>
           </div>
           <div class="totals-row">
-            <span>Discount (<input type="number" id="discount-amount" value="0" min="0" style="width:60px;border:none;border-bottom:1px solid var(--border);text-align:center;font-size:13px;outline:none;background:transparent;padding:0">)</span>
+            <span>Discount (<input type="number" id="discount-amount" value="0" min="0" style="width:60px;border:none;border-bottom:1px solid var(--border);text-align:center;font-size:13px;outline:non[...]
             <span id="discount-display">0.00</span>
           </div>
           <div class="totals-row grand"><span>TOTAL</span><span id="grand-total">0.00</span></div>
@@ -512,7 +512,7 @@
     <div class="action-bar">
       <button class="btn btn-outline" id="btn-preview">👁 Preview</button>
       <button class="btn btn-outline" id="btn-save-sheet">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 [...]
         Save to Sheet
       </button>
       <button class="btn btn-primary" id="btn-print">🖨 Save / Print PDF</button>
@@ -529,8 +529,8 @@
       
       <!-- TABS -->
       <div style="display: flex; gap: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
-        <button class="btn btn-outline btn-sm" id="btn-view-invoices-tab" style="border: none; background: none; color: var(--accent); border-bottom: 2px solid var(--accent); border-radius: 0; padding: 8px 0;">📋 Invoices</button>
-        <button class="btn btn-outline btn-sm" id="btn-view-purchases-tab" style="border: none; background: none; color: var(--ink-light); border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 0;">🛒 Purchases</button>
+        <button class="btn btn-outline btn-sm" id="btn-view-invoices-tab" style="border: none; background: none; color: var(--accent); border-bottom: 2px solid var(--accent); border-radius: 0; padding[...]
+        <button class="btn btn-outline btn-sm" id="btn-view-purchases-tab" style="border: none; background: none; color: var(--ink-light); border-bottom: 2px solid transparent; border-radius: 0; paddi[...]
       </div>
       
       <div id="invoices-container">
@@ -806,7 +806,8 @@ async function saveToSheet() {
     }
   } catch(e) {
     console.error('Save error:', e);
-    showToast('Save failed: ' + (e.message || 'Check Sheet URL in Settings'), 'error');
+    const errorMsg = e.message || 'Unknown error. Check browser console for details.';
+    showToast('Save failed: ' + errorMsg, 'error');
   }
   btn.innerHTML = '📄 Save to Sheet';
   btn.disabled = false;
@@ -1000,109 +1001,75 @@ function showInvoicesView() {
   window.scrollTo(0, 0);
 }
 
-function backToCreate() {
+$('btn-view-invoices').addEventListener('click', showInvoicesView);
+$('btn-back-to-create').addEventListener('click', () => {
   $('invoices-view').style.display = 'none';
   $('invoice-form-section').style.display = 'block';
-  $('print-preview').style.display = 'none';
-}
-
-function viewInvoiceDetail(idx, type) {
-  const inv = type === 'purchase' ? window.savedPurchases[idx] : window.savedInvoices[idx];
-  if (!inv) return;
-  
-  const docType = type === 'purchase' ? 'purchase' : 'invoice';
-  document.querySelector('input[name="doc-type"][value="' + docType + '"]').checked = true;
-  updateDocumentType();
-  
-  // Load invoice data into form
-  $('inv-number').value = inv['Document #'] || '';
-  $('inv-date').value = inv['Date'] || '';
-  $('inv-due').value = inv['Due Date'] || '';
-  $('inv-status').value = inv['Status'] || 'Draft';
-  $('inv-currency').value = inv['Currency'] || 'BDT';
-  $('from-name').value = inv['From Name'] || '';
-  $('from-email').value = inv['From Email'] || '';
-  $('from-address').value = inv['From Address'] || '';
-  $('to-name').value = inv['To Name'] || '';
-  $('to-email').value = inv['To Email'] || '';
-  $('to-address').value = inv['To Address'] || '';
-  $('tax-rate').value = inv['Tax Rate (%)'] || 0;
-  $('discount-amount').value = inv['Discount'] || 0;
-  $('inv-notes').value = inv['Notes'] || '';
-  $('inv-terms').value = inv['Terms'] || '';
-  // Clear and populate items
-  $('items-container').innerHTML = '';
-  itemCount = 0;
-  const items = typeof inv['Items (JSON)'] === 'string' ? JSON.parse(inv['Items (JSON)']) : inv['Items (JSON)'] || [];
-  if (items.length > 0) {
-    items.forEach(it => addItem(it.desc || '', it.qty || 0, it.price || 0));
-  } else {
-    addItem('Service / Product Description', 1, 0);
-  }
-  recalcTotals();
-  backToCreate();
-}
-
-function duplicateInvoice(idx, type) {
-  viewInvoiceDetail(idx, type);
-  // Change document number for duplicate
-  const cur = parseInt($('inv-number').value.replace(/\D/g,'')) || 0;
-  const isInvoice = document.querySelector('input[name="doc-type"]:checked').value === 'invoice';
-  $('inv-number').value = (isInvoice ? 'INV-' : 'PO-') + String(cur + 1).padStart(3, '0');
-  showToast('Document duplicated — update number and save', 'success');
-}
+  window.scrollTo(0, 0);
+});
 
 function updateInvoicesViewTabs() {
-  const invTab = $('btn-view-invoices-tab');
-  const purTab = $('btn-view-purchases-tab');
+  const invoicesTab = $('btn-view-invoices-tab');
+  const purchasesTab = $('btn-view-purchases-tab');
   
-  if (currentViewType === 'invoices') {
-    invTab.style.borderColor = 'var(--accent)';
-    invTab.style.color = 'var(--accent)';
-    purTab.style.borderColor = 'var(--border)';
-    purTab.style.color = 'var(--ink)';
-  } else {
-    invTab.style.borderColor = 'var(--border)';
-    invTab.style.color = 'var(--ink)';
-    purTab.style.borderColor = 'var(--accent)';
-    purTab.style.color = 'var(--accent)';
+  if (invoicesTab && purchasesTab) {
+    invoicesTab.style.color = 'var(--accent)';
+    invoicesTab.style.borderBottomColor = 'var(--accent)';
+    purchasesTab.style.color = 'var(--ink-light)';
+    purchasesTab.style.borderBottomColor = 'transparent';
   }
 }
-/* ─ DOCUMENT TYPE TOGGLE ─ */
+
+if ($('btn-view-invoices-tab')) {
+  $('btn-view-invoices-tab').addEventListener('click', () => {
+    currentViewType = 'invoices';
+    $('invoices-view-title').textContent = 'Saved Invoices';
+    updateInvoicesViewTabs();
+    loadInvoices();
+  });
+}
+
+if ($('btn-view-purchases-tab')) {
+  $('btn-view-purchases-tab').addEventListener('click', () => {
+    currentViewType = 'purchases';
+    $('invoices-view-title').textContent = 'Saved Purchases';
+    const invoicesTab = $('btn-view-invoices-tab');
+    const purchasesTab = $('btn-view-purchases-tab');
+    invoicesTab.style.color = 'var(--ink-light)';
+    invoicesTab.style.borderBottomColor = 'transparent';
+    purchasesTab.style.color = 'var(--accent)';
+    purchasesTab.style.borderBottomColor = 'var(--accent)';
+    loadPurchases();
+  });
+}
+
 function updateDocumentType() {
   const docType = document.querySelector('input[name="doc-type"]:checked').value;
-  const isInvoice = docType === 'invoice';
+  const formTitle = $('form-title');
+  const docNumberLabel = $('doc-number-label');
+  const fromLabel = $('from-label');
+  const toLabel = $('to-label');
+  const toNameLabel = $('to-name-label');
   
-  // Update labels
-  $('form-title').textContent = isInvoice ? 'Invoice Details' : 'Purchase Details';
-  $('doc-number-label').textContent = isInvoice ? 'Invoice #' : 'PO #';
-  $('from-label').textContent = isInvoice ? 'From (Your Business)' : 'To (Vendor)';
-  $('to-label').textContent = isInvoice ? 'Bill To (Client)' : 'From (Your Business)';
-  $('to-name-label').textContent = isInvoice ? 'Client Name' : 'Vendor Name';
-  
-  // Update placeholder
-  $('inv-number').placeholder = isInvoice ? 'INV-001' : 'PO-001';
-  $('to-name').placeholder = isInvoice ? 'Client Name' : 'Vendor Name';
+  if (docType === 'purchase') {
+    formTitle.textContent = 'Purchase Order Details';
+    docNumberLabel.textContent = 'PO #';
+    fromLabel.textContent = 'Purchased By (Your Business)';
+    toLabel.textContent = 'From (Vendor)';
+    toNameLabel.textContent = 'Vendor Name';
+  } else {
+    formTitle.textContent = 'Invoice Details';
+    docNumberLabel.textContent = 'Invoice #';
+    fromLabel.textContent = 'From (Your Business)';
+    toLabel.textContent = 'Bill To (Client)';
+    toNameLabel.textContent = 'Client Name';
+  }
 }
-/* ─ INIT ─ */
-applyDefaults();
-addItem('Service / Product Description', 1, 0);
-if (SHEET_URL) $('config-banner').style.display = 'none';
 
-/* ─ WIRE UP NEW EVENTS ─ */
-$('btn-view-invoices').addEventListener('click', showInvoicesView);
-$('btn-back-to-create').addEventListener('click', backToCreate);
-$('btn-view-invoices-tab').addEventListener('click', () => {
-  currentViewType = 'invoices';
-  $('invoices-view-title').textContent = 'Saved Invoices';
-  updateInvoicesViewTabs();
-  loadInvoices();
-});
-$('btn-view-purchases-tab').addEventListener('click', () => {
-  currentViewType = 'purchases';
-  $('invoices-view-title').textContent = 'Saved Purchases';
-  updateInvoicesViewTabs();
-  loadPurchases();
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+  applyDefaults();
+  updateDocumentType();
 });
 </script>
 </body>
