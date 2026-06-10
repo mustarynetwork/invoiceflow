@@ -401,12 +401,29 @@
   <!-- INVOICE FORM -->
   <section id="invoice-form-section">
 
+    <!-- DOCUMENT TYPE TOGGLE -->
+    <div class="card">
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <label style="font-size: 12px; font-weight: 600; color: var(--ink-light); text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Document Type:</label>
+        <div style="display: flex; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: var(--ink-light);">
+            <input type="radio" name="doc-type" value="invoice" checked style="cursor: pointer;" onchange="updateDocumentType()" />
+            📄 Invoice
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: var(--ink-light);">
+            <input type="radio" name="doc-type" value="purchase" style="cursor: pointer;" onchange="updateDocumentType()" />
+            🛒 Purchase
+          </label>
+        </div>
+      </div>
+    </div>
+
     <!-- META STRIP -->
     <div class="card">
-      <div class="card-title">Invoice Details</div>
+      <div class="card-title" id="form-title">Invoice Details</div>
       <div class="meta-strip">
         <div class="field">
-          <label>Invoice #</label>
+          <label id="doc-number-label">Invoice #</label>
           <input type="text" id="inv-number" placeholder="INV-001" />
         </div>
         <div class="field">
@@ -439,14 +456,14 @@
       <!-- FROM / TO -->
       <div class="two-col">
         <div>
-          <div class="card-title" style="margin-bottom:12px">From (Your Business)</div>
+          <div class="card-title" style="margin-bottom:12px" id="from-label">From (Your Business)</div>
           <div class="field" style="margin-bottom:10px"><label>Business Name</label><input type="text" id="from-name" placeholder="Your Company Ltd." /></div>
           <div class="field" style="margin-bottom:10px"><label>Email</label><input type="email" id="from-email" placeholder="you@company.com" /></div>
           <div class="field"><label>Address</label><textarea id="from-address" placeholder="123 Street, City, Country"></textarea></div>
         </div>
         <div>
-          <div class="card-title" style="margin-bottom:12px">Bill To (Client)</div>
-          <div class="field" style="margin-bottom:10px"><label>Client Name</label><input type="text" id="to-name" placeholder="Client Name" /></div>
+          <div class="card-title" style="margin-bottom:12px" id="to-label">Bill To (Client)</div>
+          <div class="field" style="margin-bottom:10px"><label id="to-name-label">Client Name</label><input type="text" id="to-name" placeholder="Client Name" /></div>
           <div class="field" style="margin-bottom:10px"><label>Email</label><input type="email" id="to-email" placeholder="client@email.com" /></div>
           <div class="field"><label>Address</label><textarea id="to-address" placeholder="Client address..."></textarea></div>
         </div>
@@ -677,6 +694,7 @@ function applyDefaults() {
 
 /* ─ collect form data ─ */
 function collectData() {
+  const docType = document.querySelector('input[name="doc-type"]:checked').value;
   const items = [];
   document.querySelectorAll('.item-row').forEach(row => {
     items.push({
@@ -691,6 +709,7 @@ function collectData() {
   const tax  = sub * (parseFloat($('tax-rate').value) || 0) / 100;
   const disc = parseFloat($('discount-amount').value) || 0;
   return {
+    docType,
     number:      $('inv-number').value,
     date:        $('inv-date').value,
     dueDate:     $('inv-due').value,
@@ -770,9 +789,10 @@ async function saveToSheet() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    // increment invoice number
+    // increment document number
     const cur = parseInt(data.number.replace(/\D/g,'')) || 0;
     localStorage.setItem('last_inv_num', String(cur));
+    const docLabel = data.docType === 'purchase' ? 'Purchase' : 'Invoice';
     showToast('✓ Saved to Google Sheet!', 'success');
   } catch(e) {
     showToast('Save failed — check Sheet URL in Settings', 'error');
@@ -832,6 +852,8 @@ $('tax-rate').addEventListener('input', recalcTotals);
 $('discount-amount').addEventListener('input', recalcTotals);
 
 /* ─ VIEW SAVED INVOICES ─ */
+let currentViewType = 'invoices';
+
 async function loadInvoices() {
   if (!SHEET_URL) {
     showToast('No Sheet URL set — open Settings first', 'error');
@@ -860,6 +882,34 @@ async function loadInvoices() {
   }
 }
 
+async function loadPurchases() {
+  if (!SHEET_URL) {
+    showToast('No Sheet URL set — open Settings first', 'error');
+    $('invoices-container').innerHTML = '<div class="invoices-empty"><h3>Sheet URL not configured</h3><p>Open Settings and add your Google Sheet URL to view purchases.</p></div>';
+    return;
+  }
+  const container = $('invoices-container');
+  container.innerHTML = '<div class="invoices-loading">Loading purchases...</div>';
+  try {
+    const url = SHEET_URL.includes('?') ? SHEET_URL + '&action=getPurchases' : SHEET_URL + '?action=getPurchases';
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('HTTP ' + response.status);
+    }
+    const data = await response.json();
+    if (data.status === 'ok' && data.purchases && data.purchases.length > 0) {
+      displayPurchases(data.purchases);
+    } else if (data.status === 'ok') {
+      container.innerHTML = '<div class="invoices-empty"><h3>No purchases yet</h3><p>Create your first purchase to see it here.</p></div>';
+    } else {
+      throw new Error(data.message || 'Unknown error');
+    }
+  } catch(e) {
+    console.error('Load purchases error:', e);
+    container.innerHTML = '<div class="invoices-empty"><h3>Error loading purchases</h3><p>' + (e.message || 'Check your Sheet URL in Settings.') + '</p></div>';
+  }
+}
+
 function displayInvoices(invoices) {
   const container = $('invoices-container');
   if (invoices.length === 0) {
@@ -871,34 +921,70 @@ function displayInvoices(invoices) {
   invoices.forEach((inv, idx) => {
     const card = document.createElement('div');
     card.className = 'invoice-card';
-    const items = typeof inv.items === 'string' ? JSON.parse(inv.items) : inv.items || [];
-    const amount = inv.grandTotal || 0;
-    const cur = inv.currency || 'USD';
+    const items = typeof inv['Items (JSON)'] === 'string' ? JSON.parse(inv['Items (JSON)']) : inv['Items (JSON)'] || [];
+    const amount = inv['Grand Total'] || 0;
+    const cur = inv['Currency'] || 'USD';
     const syms = { BDT:'৳', USD:'$', EUR:'€', GBP:'£' };
     const sym = syms[cur] || '';
     card.innerHTML = `
-      <div class="invoice-card-number">${inv.number || 'INV'}</div>
-      <div class="invoice-card-client">${inv.toName || 'Client'}</div>
+      <div class="invoice-card-number">${inv['Document #'] || 'INV'}</div>
+      <div class="invoice-card-client">${inv['To Name'] || 'Client'}</div>
       <div class="invoice-card-meta">
-        <span>${inv.date || '—'}</span>
-        <span class="badge badge-${(inv.status||'Draft').toLowerCase()}">${inv.status || 'Draft'}</span>
+        <span>${inv['Date'] || '—'}</span>
+        <span class="badge badge-${(inv['Status']||'Draft').toLowerCase()}">${inv['Status'] || 'Draft'}</span>
       </div>
       <div class="invoice-card-amount">${sym}${parseFloat(amount).toFixed(2)}</div>
       <div class="invoice-card-actions">
-        <button class="btn btn-sm btn-outline" onclick="viewInvoiceDetail(${idx})">View</button>
-        <button class="btn btn-sm btn-outline" onclick="duplicateInvoice(${idx})">Duplicate</button>
+        <button class="btn btn-sm btn-outline" onclick="viewInvoiceDetail(${idx}, 'invoice')">View</button>
+        <button class="btn btn-sm btn-outline" onclick="duplicateInvoice(${idx}, 'invoice')">Duplicate</button>
       </div>
     `;
     grid.appendChild(card);
   });
-  // Store invoices for detail view
   window.savedInvoices = invoices;
+}
+
+function displayPurchases(purchases) {
+  const container = $('invoices-container');
+  if (purchases.length === 0) {
+    container.innerHTML = '<div class="invoices-empty"><h3>No purchases yet</h3><p>Create your first purchase to see it here.</p></div>';
+    return;
+  }
+  container.innerHTML = '<div class="invoices-grid" id="invoices-grid"></div>';
+  const grid = $('invoices-grid');
+  purchases.forEach((pur, idx) => {
+    const card = document.createElement('div');
+    card.className = 'invoice-card';
+    const items = typeof pur['Items (JSON)'] === 'string' ? JSON.parse(pur['Items (JSON)']) : pur['Items (JSON)'] || [];
+    const amount = pur['Grand Total'] || 0;
+    const cur = pur['Currency'] || 'USD';
+    const syms = { BDT:'৳', USD:'$', EUR:'€', GBP:'£' };
+    const sym = syms[cur] || '';
+    card.innerHTML = `
+      <div class="invoice-card-number">${pur['Document #'] || 'PO'}</div>
+      <div class="invoice-card-client">${pur['To Name'] || 'Vendor'}</div>
+      <div class="invoice-card-meta">
+        <span>${pur['Date'] || '—'}</span>
+        <span class="badge badge-${(pur['Status']||'Draft').toLowerCase()}">${pur['Status'] || 'Draft'}</span>
+      </div>
+      <div class="invoice-card-amount">${sym}${parseFloat(amount).toFixed(2)}</div>
+      <div class="invoice-card-actions">
+        <button class="btn btn-sm btn-outline" onclick="viewInvoiceDetail(${idx}, 'purchase')">View</button>
+        <button class="btn btn-sm btn-outline" onclick="duplicateInvoice(${idx}, 'purchase')">Duplicate</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  window.savedPurchases = purchases;
 }
 
 function showInvoicesView() {
   $('invoice-form-section').style.display = 'none';
   $('print-preview').style.display = 'none';
   $('invoices-view').style.display = 'block';
+  currentViewType = 'invoices';
+  $('invoices-view-title').textContent = 'Saved Invoices';
+  updateInvoicesViewTabs();
   loadInvoices();
   window.scrollTo(0, 0);
 }
@@ -909,29 +995,34 @@ function backToCreate() {
   $('print-preview').style.display = 'none';
 }
 
-function viewInvoiceDetail(idx) {
-  const inv = window.savedInvoices[idx];
+function viewInvoiceDetail(idx, type) {
+  const inv = type === 'purchase' ? window.savedPurchases[idx] : window.savedInvoices[idx];
   if (!inv) return;
+  
+  const docType = type === 'purchase' ? 'purchase' : 'invoice';
+  document.querySelector('input[name="doc-type"][value="' + docType + '"]').checked = true;
+  updateDocumentType();
+  
   // Load invoice data into form
-  $('inv-number').value = inv.number || '';
-  $('inv-date').value = inv.date || '';
-  $('inv-due').value = inv.dueDate || '';
-  $('inv-status').value = inv.status || 'Draft';
-  $('inv-currency').value = inv.currency || 'BDT';
-  $('from-name').value = inv.fromName || '';
-  $('from-email').value = inv.fromEmail || '';
-  $('from-address').value = inv.fromAddress || '';
-  $('to-name').value = inv.toName || '';
-  $('to-email').value = inv.toEmail || '';
-  $('to-address').value = inv.toAddress || '';
-  $('tax-rate').value = inv.taxRate || 0;
-  $('discount-amount').value = inv.discount || 0;
-  $('inv-notes').value = inv.notes || '';
-  $('inv-terms').value = inv.terms || '';
+  $('inv-number').value = inv['Document #'] || '';
+  $('inv-date').value = inv['Date'] || '';
+  $('inv-due').value = inv['Due Date'] || '';
+  $('inv-status').value = inv['Status'] || 'Draft';
+  $('inv-currency').value = inv['Currency'] || 'BDT';
+  $('from-name').value = inv['From Name'] || '';
+  $('from-email').value = inv['From Email'] || '';
+  $('from-address').value = inv['From Address'] || '';
+  $('to-name').value = inv['To Name'] || '';
+  $('to-email').value = inv['To Email'] || '';
+  $('to-address').value = inv['To Address'] || '';
+  $('tax-rate').value = inv['Tax Rate (%)'] || 0;
+  $('discount-amount').value = inv['Discount'] || 0;
+  $('inv-notes').value = inv['Notes'] || '';
+  $('inv-terms').value = inv['Terms'] || '';
   // Clear and populate items
   $('items-container').innerHTML = '';
   itemCount = 0;
-  const items = typeof inv.items === 'string' ? JSON.parse(inv.items) : inv.items || [];
+  const items = typeof inv['Items (JSON)'] === 'string' ? JSON.parse(inv['Items (JSON)']) : inv['Items (JSON)'] || [];
   if (items.length > 0) {
     items.forEach(it => addItem(it.desc || '', it.qty || 0, it.price || 0));
   } else {
@@ -941,14 +1032,47 @@ function viewInvoiceDetail(idx) {
   backToCreate();
 }
 
-function duplicateInvoice(idx) {
-  viewInvoiceDetail(idx);
-  // Change invoice number for duplicate
+function duplicateInvoice(idx, type) {
+  viewInvoiceDetail(idx, type);
+  // Change document number for duplicate
   const cur = parseInt($('inv-number').value.replace(/\D/g,'')) || 0;
-  $('inv-number').value = 'INV-' + String(cur + 1).padStart(3, '0');
-  showToast('Invoice duplicated — update number and save', 'success');
+  const isInvoice = document.querySelector('input[name="doc-type"]:checked').value === 'invoice';
+  $('inv-number').value = (isInvoice ? 'INV-' : 'PO-') + String(cur + 1).padStart(3, '0');
+  showToast('Document duplicated — update number and save', 'success');
 }
 
+function updateInvoicesViewTabs() {
+  const invTab = $('btn-view-invoices-tab');
+  const purTab = $('btn-view-purchases-tab');
+  
+  if (currentViewType === 'invoices') {
+    invTab.style.borderColor = 'var(--accent)';
+    invTab.style.color = 'var(--accent)';
+    purTab.style.borderColor = 'var(--border)';
+    purTab.style.color = 'var(--ink)';
+  } else {
+    invTab.style.borderColor = 'var(--border)';
+    invTab.style.color = 'var(--ink)';
+    purTab.style.borderColor = 'var(--accent)';
+    purTab.style.color = 'var(--accent)';
+  }
+}
+/* ─ DOCUMENT TYPE TOGGLE ─ */
+function updateDocumentType() {
+  const docType = document.querySelector('input[name="doc-type"]:checked').value;
+  const isInvoice = docType === 'invoice';
+  
+  // Update labels
+  $('form-title').textContent = isInvoice ? 'Invoice Details' : 'Purchase Details';
+  $('doc-number-label').textContent = isInvoice ? 'Invoice #' : 'PO #';
+  $('from-label').textContent = isInvoice ? 'From (Your Business)' : 'To (Vendor)';
+  $('to-label').textContent = isInvoice ? 'Bill To (Client)' : 'From (Your Business)';
+  $('to-name-label').textContent = isInvoice ? 'Client Name' : 'Vendor Name';
+  
+  // Update placeholder
+  $('inv-number').placeholder = isInvoice ? 'INV-001' : 'PO-001';
+  $('to-name').placeholder = isInvoice ? 'Client Name' : 'Vendor Name';
+}
 /* ─ INIT ─ */
 applyDefaults();
 addItem('Service / Product Description', 1, 0);
@@ -957,6 +1081,18 @@ if (SHEET_URL) $('config-banner').style.display = 'none';
 /* ─ WIRE UP NEW EVENTS ─ */
 $('btn-view-invoices').addEventListener('click', showInvoicesView);
 $('btn-back-to-create').addEventListener('click', backToCreate);
+$('btn-view-invoices-tab').addEventListener('click', () => {
+  currentViewType = 'invoices';
+  $('invoices-view-title').textContent = 'Saved Invoices';
+  updateInvoicesViewTabs();
+  loadInvoices();
+});
+$('btn-view-purchases-tab').addEventListener('click', () => {
+  currentViewType = 'purchases';
+  $('invoices-view-title').textContent = 'Saved Purchases';
+  updateInvoicesViewTabs();
+  loadPurchases();
+});
 </script>
 </body>
 </html>
