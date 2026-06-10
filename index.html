@@ -523,9 +523,16 @@
   <section id="invoices-view">
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <div class="card-title" style="margin: 0; border: none; padding: 0;">Saved Invoices</div>
+        <div class="card-title" style="margin: 0; border: none; padding: 0;" id="invoices-view-title">Saved Invoices</div>
         <button class="btn btn-outline btn-sm" id="btn-back-to-create">← New Invoice</button>
       </div>
+      
+      <!-- TABS -->
+      <div style="display: flex; gap: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+        <button class="btn btn-outline btn-sm" id="btn-view-invoices-tab" style="border: none; background: none; color: var(--accent); border-bottom: 2px solid var(--accent); border-radius: 0; padding: 8px 0;">📋 Invoices</button>
+        <button class="btn btn-outline btn-sm" id="btn-view-purchases-tab" style="border: none; background: none; color: var(--ink-light); border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 0;">🛒 Purchases</button>
+      </div>
+      
       <div id="invoices-container">
         <div class="invoices-loading">Loading invoices...</div>
       </div>
