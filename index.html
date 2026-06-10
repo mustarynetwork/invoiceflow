@@ -790,19 +790,23 @@ async function saveToSheet() {
   btn.disabled = true;
   const data = collectData();
   try {
-    await fetch(SHEET_URL, {
+    const response = await fetch(SHEET_URL, {
       method: 'POST',
-      mode:   'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    // increment document number
-    const cur = parseInt(data.number.replace(/\D/g,'')) || 0;
-    localStorage.setItem('last_inv_num', String(cur));
-    const docLabel = data.docType === 'purchase' ? 'Purchase' : 'Invoice';
-    showToast('✓ Saved to Google Sheet!', 'success');
+    const result = await response.json();
+    if (result.status === 'ok') {
+      const cur = parseInt(data.number.replace(/\D/g,'')) || 0;
+      localStorage.setItem('last_inv_num', String(cur));
+      const docLabel = data.docType === 'purchase' ? 'Purchase' : 'Invoice';
+      showToast('✓ ' + docLabel + ' saved to Google Sheet!', 'success');
+    } else {
+      throw new Error(result.message || 'Save failed');
+    }
   } catch(e) {
-    showToast('Save failed — check Sheet URL in Settings', 'error');
+    console.error('Save error:', e);
+    showToast('Save failed: ' + (e.message || 'Check Sheet URL in Settings'), 'error');
   }
   btn.innerHTML = '📄 Save to Sheet';
   btn.disabled = false;
