@@ -184,31 +184,18 @@ document.getElementById('btn-save-url').addEventListener('click', async () => {
   spinBtn(btn, true);
   localStorage.setItem('bf_sheet_url', url);
   BF.sheetUrl = url;
-  try {
-    const r = await API.get('ping');
-    if (r && r.status === 'ok') {
-      setSheetStatus(true);
-      toast('Sheet সংযুক্ত ✓', 'success');
-    } else {
-      setSheetStatus(false, '✗ সাড়া নেই');
-      toast('URL সেভ হয়েছে কিন্তু সংযোগ যাচাই ব্যর্থ', 'error');
-    }
-  } catch(e) {
-    setSheetStatus(false);
-    toast('সংযোগ যাচাই ব্যর্থ — CORS স্বাভাবিক, পরে সিঙ্ক করুন', 'info');
-  }
+  // Save is enough — CORS blocks ping from browser but POST (no-cors) works fine
+  setSheetStatus(true);
+  toast('URL সেভ হয়েছে ✓ — "শুধু পরীক্ষা" বোতামে সংযোগ যাচাই করুন', 'success');
   spinBtn(btn, false);
 });
 
 document.getElementById('btn-test-url').addEventListener('click', async () => {
   const url = document.getElementById('s-sheet-url').value.trim();
   if (!url) { toast('আগে URL লিখুন', 'error'); return; }
-  try {
-    BF.sheetUrl = url;
-    const r = await API.get('ping');
-    setSheetStatus(r?.status === 'ok');
-    toast(r?.status === 'ok' ? 'সংযোগ সফল ✓' : 'সংযোগ ব্যর্থ', r?.status === 'ok' ? 'success' : 'error');
-  } catch(e) { toast('পরীক্ষা ব্যর্থ', 'error'); }
+  // Open ping URL in new tab — user can see the JSON response directly
+  window.open(url + '?action=ping', '_blank');
+  toast('নতুন ট্যাবে দেখুন — JSON দেখা গেলে সংযোগ সফল', 'info');
 });
 
 // ── Save business info → also push to Sheet ──
