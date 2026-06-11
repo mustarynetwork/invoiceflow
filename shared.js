@@ -57,8 +57,105 @@ const Auth = {
 ════════════════════════════════════════ */
 const API = {
 
-  // POST request — works for both reads and writes from any browser
+  /* ── WRITE — no-cors POST (fire and forget) ── */
   async post(payload) {
+    if (!BF.sheetUrl) throw new Error('Sheet URL সেট নেই। Settings-এ গিয়ে URL দিন।');
+    await fetch(BF.sheetUrl, {
+      method:  'POST',
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    return true;
+  },
+
+  /* ── READ — JSONP via <script> tag (bypasses CORS entirely) ── */
+  fetch(action, extraData = {}) {
+    return new Promise((resolve, reject) => {
+      if (!BF.sheetUrl) { reject(new Error('Sheet URL সেট নেই।')); return; }
+
+      // Unique callback name
+      const cbName = '_bfcb_' + Date.now() + '_' + Math.floor(Math.random() * 9999);
+
+      // Timeout after 15 seconds
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('Timeout — Apps Script সাড়া দিচ্ছে না'));
+      }, 15000);
+
+      function cleanup() {
+        clearTimeout(timer);
+        delete window[cbName];
+        const el = document.getElementById(cbName);
+        if (el) el.remove();
+      }
+
+      // Register global callback
+      window[cbName] = function(data) {
+        cleanup();
+        resolve(data);
+      };
+
+      // Build URL with all params
+      const url = new URL(BF.sheetUrl);
+      url.searchParams.set('action',   action);
+      url.searchParams.set('callback', cbName);
+      Object.entries(extraData).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+
+      // Inject <script> tag — this follows redirects and ignores CORS
+      const script  = document.createElement('script');
+      script.id     = cbName;
+      script.src    = url.toString();
+      script.onerror = () => {
+        cleanup();
+        reject(new Error('Script load failed'));
+      };
+      document.head.appendChild(script);
+    });
+  },
+
+  /* ── SYNC ALL DATA from Sheet after login ── */
+  async syncAllData(onProgress) {
+    if (!BF.sheetUrl) return false;
+    try {
+      onProgress && onProgress('কনফিগ লোড হচ্ছে…');
+      const config = await API.fetch('getConfig');
+      if (config && !config.error) {
+        if (config.pw_super) { localStorage.setItem('bf_pw_super', config.pw_super); BF.roles.super = config.pw_super; }
+        if (config.pw_admin) { localStorage.setItem('bf_pw_admin', config.pw_admin); BF.roles.admin = config.pw_admin; }
+        if (config.biz_name)    localStorage.setItem('bf_biz_name',    config.biz_name);
+        if (config.biz_phone)   localStorage.setItem('bf_biz_phone',   config.biz_phone);
+        if (config.biz_address) localStorage.setItem('bf_biz_address', config.biz_address);
+      }
+
+      onProgress && onProgress('পার্টি লিস্ট লোড হচ্ছে…');
+      const parties = await API.fetch('getParties');
+      if (Array.isArray(parties)) localStorage.setItem('bf_parties', JSON.stringify(parties));
+
+      onProgress && onProgress('পণ্য তালিকা লোড হচ্ছে…');
+      const products = await API.fetch('getProducts');
+      if (Array.isArray(products)) {
+        localStorage.setItem('bf_products', JSON.stringify(
+          products.map(p => ({ ...p, hasOffer: p.hasOffer === 'true' || p.hasOffer === true }))
+        ));
+      }
+
+      onProgress && onProgress('অর্ডার লোড হচ্ছে…');
+      const orders = await API.fetch('getOrders');
+      if (Array.isArray(orders)) localStorage.setItem('bf_orders', JSON.stringify(orders));
+
+      if (Array.isArray(parties))  localStorage.setItem('bf_count_parties',  parties.length);
+      if (Array.isArray(products)) localStorage.setItem('bf_count_products', products.length);
+      if (Array.isArray(orders))   localStorage.setItem('bf_count_sales',    orders.filter(o => o.orderType === 'sales').length);
+      localStorage.setItem('bf_last_sync', new Date().toISOString());
+
+      return true;
+    } catch(e) {
+      console.warn('Sync failed:', e.message);
+      return false;
+    }
+  },
+};
     if (!BF.sheetUrl) throw new Error('Sheet URL সেট নেই। Settings-এ গিয়ে URL দিন।');
     const res = await fetch(BF.sheetUrl, {
       method:  'POST',
