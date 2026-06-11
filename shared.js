@@ -71,12 +71,25 @@ const API = {
 
   async get(action, params = {}) {
     if (!BF.sheetUrl) throw new Error('Sheet URL সেট নেই।');
-    const url = new URL(BF.sheetUrl);
-    url.searchParams.set('action', action);
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-    const res  = await fetch(url.toString());
-    const data = await res.json();
-    return data;
+    // Use POST instead of GET to avoid CORS issues from GitHub Pages
+    // Apps Script accepts action in the JSON body
+    try {
+      const res  = await fetch(BF.sheetUrl, {
+        method: 'POST',
+        mode:   'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...params }),
+      });
+      const data = await res.json();
+      return data;
+    } catch(e) {
+      // Fallback: try direct GET (works when opened directly in browser)
+      const url = new URL(BF.sheetUrl);
+      url.searchParams.set('action', action);
+      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+      const res  = await fetch(url.toString());
+      return await res.json();
+    }
   },
 
   /* ════════════════════════════════════════════
