@@ -194,7 +194,7 @@ function buildNav(activePage) {
 
   html += `
     <div class="bf-nav-bottom">
-      <div class="bf-role-badge">${Auth.isSuper() ? '👑 Super User' : '🔑 Admin'}</div>
+      <div class="bf-role-badge">${Auth.isSuper() ? '👑 Super User' : Auth.isViewer() ? '👁 Viewer' : '🔑 Admin'}</div>
       <a class="bf-nav-item" onclick="Auth.logout()" style="cursor:pointer">
         <span class="nav-icon">🚪</span>লগআউট
       </a>
@@ -209,6 +209,21 @@ function buildNav(activePage) {
     document.addEventListener('click', e => {
       if (!navEl.contains(e.target) && e.target !== menuBtn) navEl.classList.remove('open');
     });
+  } 
+   // Viewer: hide all create/edit/delete/save controls
+  if (Auth.isViewer()) {
+    const style = document.createElement('style');
+    style.textContent = `
+      .btn-primary, .btn-success, .btn-danger,
+      [id^="btn-new"], [id^="btn-save"], [id^="btn-add"],
+      .btn-remove, .td-actions .btn-danger,
+      #btn-save-order, #btn-save-order-2,
+      .del-row { display: none !important; }
+      input:not(#list-search):not([id^="list-"]):not(#search-input):not(#pw):not(#login-pw),
+      select:not([id^="list-"]):not([id^="filter-"]):not(#f-party),
+      textarea { pointer-events: none !important; background: #f8fafc !important; }
+    `;
+    document.head.appendChild(style);
   }
 }
 
