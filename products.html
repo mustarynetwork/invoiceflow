@@ -109,8 +109,14 @@
         <input type="number" id="pr-carton" placeholder="যেমন: 24" min="1"/>
       </div>
       <div class="field">
+        <label>কার্টন মূল্য (৳ প্রতি কার্টন)</label>
+        <input type="number" id="pr-carton-price" placeholder="0.00" min="0" step="0.01"/>
+        <p style="font-size:11px;color:var(--ink3);margin-top:3px">কার্টন মূল্য দিলে পিস মূল্য স্বয়ংক্রিয় হবে</p>
+      </div>
+      <div class="field">
         <label>মূল মূল্য (৳ প্রতি পিস) *</label>
         <input type="number" id="pr-price" placeholder="0.00" min="0" step="0.01"/>
+        <p style="font-size:11px;color:var(--ink3);margin-top:3px">পিস মূল্য দিলে কার্টন মূল্য স্বয়ংক্রিয় হবে</p>
       </div>
 
       <!-- OFFER SECTION -->
@@ -293,8 +299,9 @@ function openProductModal(id = null) {
   document.getElementById('prod-modal-title').textContent = p ? 'পণ্য সম্পাদনা করুন' : 'নতুন পণ্য যোগ করুন';
   document.getElementById('pr-name').value    = p?.name       || '';
   document.getElementById('pr-code').value    = p?.code       || autoCode();
-  document.getElementById('pr-carton').value  = p?.cartonSize || '';
-  document.getElementById('pr-price').value   = p?.price      || '';
+  document.getElementById('pr-carton').value       = p?.cartonSize  || '';
+  document.getElementById('pr-carton-price').value = p?.cartonPrice || '';
+  document.getElementById('pr-price').value        = p?.price       || '';
   document.getElementById('pr-status').value  = p?.status     || 'active';
   document.getElementById('pr-notes').value   = p?.notes      || '';
 
@@ -325,6 +332,24 @@ function toggleOfferFields(show) {
   document.getElementById('formula-hint').classList.toggle('visible', show);
 }
 
+/* ── CARTON PRICE ⇄ PIECE PRICE (two-way) ── */
+function cartonToPiece() {
+  const carton  = parseFloat(document.getElementById('pr-carton').value)       || 0;
+  const cPrice  = parseFloat(document.getElementById('pr-carton-price').value) || 0;
+  if (carton > 0 && cPrice > 0) {
+    document.getElementById('pr-price').value = (cPrice / carton).toFixed(2);
+  }
+  calcEffectivePrice();
+}
+function pieceToCarton() {
+  const carton  = parseFloat(document.getElementById('pr-carton').value) || 0;
+  const pPrice  = parseFloat(document.getElementById('pr-price').value)  || 0;
+  if (carton > 0 && pPrice > 0) {
+    document.getElementById('pr-carton-price').value = (pPrice * carton).toFixed(2);
+  }
+  calcEffectivePrice();
+}
+  
 function calcEffectivePrice() {
   const price     = parseFloat(document.getElementById('pr-price').value)      || 0;
   const offerSize = parseFloat(document.getElementById('pr-offer-size').value) || 0;
@@ -370,6 +395,7 @@ async function saveProduct() {
     id:            editProdId || ('PR' + Date.now()),
     code, name,
     cartonSize:    parseFloat(document.getElementById('pr-carton').value)||0,
+    cartonPrice:   parseFloat(document.getElementById('pr-carton-price').value)||0,
     price,
     hasOffer,
     offerSize:     hasOffer ? offerSize : 0,
@@ -526,7 +552,16 @@ document.getElementById('pr-has-offer').addEventListener('change', e => {
   toggleOfferFields(e.target.checked);
   calcEffectivePrice();
 });
-['pr-price','pr-offer-size','pr-free-qty'].forEach(id =>
+// Carton price typed → fill piece price
+document.getElementById('pr-carton-price').addEventListener('input', cartonToPiece);
+// Piece price typed → fill carton price
+document.getElementById('pr-price').addEventListener('input', pieceToCarton);
+// Carton size changed → recompute both directions from carton price if present
+document.getElementById('pr-carton').addEventListener('input', function(){
+  const cPrice = parseFloat(document.getElementById('pr-carton-price').value)||0;
+  if (cPrice > 0) cartonToPiece(); else pieceToCarton();
+});
+['pr-offer-size','pr-free-qty'].forEach(id =>
   document.getElementById(id).addEventListener('input', calcEffectivePrice)
 );
 
