@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>BizFlow — ক্রয় / বিক্রয়</title>
   <style>
-    /* ── SCREEN STYLES ── */
     .order-type-tabs{display:flex;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);width:fit-content}
     .order-tab{padding:8px 22px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--surface);color:var(--ink2);transition:all .15s}
     .order-tab.active-purchase{background:#3b82f6;color:#fff}
     .order-tab.active-sales{background:#059669;color:#fff}
 
-    .order-item-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 36px;gap:8px;margin-bottom:8px;align-items:center}
-    .order-item-row input,.order-item-row select{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;color:var(--ink);outline:none;width:100%;transition:border-color .2s}
+    /* item row: product | code | totalqty | qty | free | eprice | amount | del */
+    .order-item-row{display:grid;grid-template-columns:1.6fr .7fr .7fr .6fr .6fr .8fr .8fr 30px;gap:6px;margin-bottom:8px;align-items:center}
+    .order-item-row input,.order-item-row select{border:1.5px solid var(--border);border-radius:7px;padding:7px 8px;font-family:inherit;font-size:12px;color:var(--ink);outline:none;width:100%;transition:border-color .2s}
     .order-item-row input:focus,.order-item-row select:focus{border-color:var(--accent)}
     .order-item-row input[readonly]{background:var(--bg);color:var(--ink2)}
-    .items-hdr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 36px;gap:8px;padding:0 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:6px}
-    @media(max-width:600px){.order-item-row{grid-template-columns:1fr 70px 80px 80px 30px;gap:5px}.items-hdr{display:none}}
+    .items-hdr{display:grid;grid-template-columns:1.6fr .7fr .7fr .6fr .6fr .8fr .8fr 30px;gap:6px;padding:0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink3);margin-bottom:6px}
+    @media(max-width:700px){.order-item-row{grid-template-columns:1.4fr .6fr .6fr .5fr .5fr .7fr .7fr 26px;gap:3px}.items-hdr{display:none}}
 
     .summary-box{background:var(--bg);border-radius:12px;padding:18px}
     .sum-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border)}
@@ -36,97 +36,48 @@
     .badge-partial{background:#fef9c3;color:#854d0e}
     .badge-due{background:#fee2e2;color:#dc2626}
 
-    /* ════════════════════════════════════════
-       PRINT STYLES
-    ════════════════════════════════════════ */
-    /* Hide print elements on screen */
+    /* ════════════ PRINT ════════════ */
     .print-only{display:none!important}
-
     @media print{
-      /* Hide everything except the invoice */
       .no-print{display:none!important}
       body{background:#fff;font-size:12px;margin:0;padding:0}
       .bf-layout{display:block}
       .bf-nav,.bf-topbar{display:none!important}
       .bf-main{margin-left:0!important}
-      .bf-body{padding:16px!important}
+      .bf-body{padding:0!important}
       #order-list-section{display:none!important}
       #order-form-section{display:block!important}
-
-      /* Hide screen-only right column cards */
       .screen-only{display:none!important}
-
-      /* Show print elements */
       .print-only{display:block!important}
+      .card{box-shadow:none!important;border:none!important;padding:0!important;margin:0!important}
 
-      /* Cards become plain boxes */
-      .card{box-shadow:none!important;border:none!important;padding:0!important;margin-bottom:10px!important}
-
-      /* ── PRINT INVOICE HEADER ── */
-      .print-inv-header{
-        display:flex!important;
-        justify-content:space-between;
-        align-items:flex-start;
-        margin-bottom:14px;
-        padding-bottom:14px;
-        border-bottom:3px solid #0f172a;
-      }
-      .print-biz-left{}
-      .print-biz-name{font-size:20px;font-weight:800;color:#0f172a;line-height:1.2;font-family:'Syne',sans-serif}
-      .print-biz-sub{font-size:12px;color:#444;margin-top:4px}
-      .print-inv-right{text-align:right}
-      .print-inv-type{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#0f172a}
-      .print-inv-orderid{font-size:13px;color:#444;margin-top:5px;font-weight:600}
-
-      /* ── SOLID LINE (accent bar) ── */
-      .print-accent{display:block!important;height:4px;background:linear-gradient(90deg,#4f46e5,#059669);border-radius:2px;margin:12px 0 14px}
-
-      /* ── PARTY + DATE ROW ── */
-      .print-party-row{
-        display:flex!important;
-        justify-content:space-between;
-        align-items:flex-start;
-        margin-bottom:16px;
-        padding-bottom:12px;
-        border-bottom:1px solid #ddd;
-      }
-      .print-party-name{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:3px}
-      .print-party-addr{font-size:12px;color:#555}
-      .print-party-type{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-      .print-date{font-size:13px;font-weight:600;color:#0f172a;text-align:right}
-
-      /* ── PRODUCT TABLE ── */
-      .print-items-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#555;margin-bottom:8px}
-
-      /* ── PRINT FOOTER SUMMARY ── */
-      .print-footer{
-        display:block!important;
-        margin-top:16px;
-        border-top:1px solid #ddd;
-        padding-top:12px;
-      }
-      .print-footer-row{
-        display:flex!important;
-        justify-content:space-between;
-        align-items:baseline;
-        font-size:12px;
-        margin-bottom:6px;
-      }
-      .print-footer-left{color:#333;flex:1}
-      .print-footer-right{font-weight:600;color:#0f172a;text-align:right;flex:0 0 120px}
-      .print-footer-divider{border:none;border-top:1px dashed #ccc;margin:8px 0}
-      .print-footer-totals{
-        display:flex!important;
-        justify-content:space-between;
-        margin-top:10px;
-        padding-top:10px;
-        border-top:2px solid #0f172a;
-        font-size:12px;
-        font-weight:700;
-      }
-      .print-footer-totals span{flex:1;text-align:center}
-      .print-footer-totals span:first-child{text-align:left}
-      .print-footer-totals span:last-child{text-align:right}
+      #print-invoice{display:block!important;font-family:Arial,sans-serif;color:#000;padding:4px}
+      .pi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+      .pi-biz-name{font-size:22px;font-weight:800;letter-spacing:.3px}
+      .pi-inv-label{font-size:20px;font-weight:800;letter-spacing:2px;text-align:right}
+      .pi-inv-no{font-size:12px;text-align:right;margin-top:3px}
+      .pi-blackline{border:none;border-top:2px solid #000;margin:2px 0 1px}
+      .pi-depo{font-style:italic;font-size:11px;line-height:1.1;margin:0 0 8px}
+      .pi-party-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #ccc}
+      .pi-party-type{font-size:11px;color:#666;margin-bottom:2px}
+      .pi-party-name{font-size:14px;font-weight:700}
+      .pi-party-addr{font-size:11px;color:#555;margin-top:1px}
+      .pi-date{font-size:12px;font-weight:600;text-align:right}
+      .pi-items-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:5px}
+      .pi-table{width:100%;border-collapse:collapse;margin-bottom:10px}
+      .pi-table th{background:#f0f0f0;border:1px solid #000;padding:4px 6px;font-size:11px;text-align:left;font-weight:bold}
+      .pi-table td{border:1px solid #000;padding:4px 6px;font-size:11px}
+      .pi-table .r{text-align:right}
+      .pi-table .c{text-align:center}
+      .pi-footer{margin-top:8px;border-top:1px solid #ccc;padding-top:8px}
+      .pi-frow{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
+      .pi-frow .left{flex:1;color:#333}
+      .pi-frow .right{flex:0 0 160px;text-align:right;font-weight:600}
+      .pi-note{font-size:11px;font-style:italic;color:#444;margin-top:6px}
+      .pi-final{display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:2px solid #000;font-size:12px;font-weight:700}
+      .pi-final span{flex:1;text-align:center}
+      .pi-final span:first-child{text-align:left}
+      .pi-final span:last-child{text-align:right}
     }
   </style>
 </head>
@@ -135,7 +86,6 @@
   <nav class="bf-nav" id="bf-nav"></nav>
   <div class="bf-main">
 
-    <!-- TOPBAR -->
     <div class="bf-topbar no-print">
       <div style="display:flex;align-items:center;gap:12px">
         <button class="bf-menu-btn" id="bf-menu-btn">☰</button>
@@ -198,37 +148,68 @@
       <!-- ════ ORDER FORM ════ -->
       <section id="order-form-section" style="display:none">
 
-        <!-- ══ PRINT INVOICE (print-only elements) ══ -->
-
-        <!-- Top: Business name left, Invoice type + order no right -->
-        <div class="print-inv-header print-only" id="print-inv-header">
-          <div class="print-biz-left">
-            <div class="print-biz-name" id="p-biz-name"></div>
-            <div class="print-biz-sub"  id="p-biz-sub"></div>
+        <!-- ═══ PRINT INVOICE ═══ -->
+        <div id="print-invoice" class="print-only">
+          <!-- Top: supplier name left, INVOICE/PO + order no right -->
+          <div class="pi-top">
+            <div class="pi-biz-name" id="pi-biz-name">BizFlow</div>
+            <div>
+              <div class="pi-inv-label" id="pi-inv-label">INVOICE</div>
+              <div class="pi-inv-no" id="pi-inv-no"></div>
+            </div>
           </div>
-          <div class="print-inv-right">
-            <div class="print-inv-type"    id="p-inv-type">INVOICE</div>
-            <div class="print-inv-orderid" id="p-inv-orderid"></div>
+          <hr class="pi-blackline"/>
+          <!-- Super Depo line (italic, supplier info) -->
+          <div class="pi-depo" id="pi-depo"></div>
+
+          <!-- Party + date -->
+          <div class="pi-party-row">
+            <div>
+              <div class="pi-party-type" id="pi-party-type">গ্রাহক</div>
+              <div class="pi-party-name" id="pi-party-name"></div>
+              <div class="pi-party-addr" id="pi-party-addr"></div>
+            </div>
+            <div class="pi-date" id="pi-date"></div>
+          </div>
+
+          <div class="pi-items-title">পণ্য তালিকা</div>
+          <table class="pi-table">
+            <thead>
+              <tr>
+                <th class="c" style="width:26px">Sl.</th>
+                <th>Items</th>
+                <th class="c" style="width:48px">Code</th>
+                <th class="c" style="width:55px">Total QTY</th>
+                <th class="c" style="width:42px">QTY</th>
+                <th class="c" style="width:40px">Free</th>
+                <th class="c" style="width:55px">E. Price</th>
+                <th class="c" style="width:65px">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="pi-items"></tbody>
+          </table>
+
+          <!-- Footer: deductions+total | payments+total | note | final row -->
+          <div class="pi-footer">
+            <div class="pi-frow">
+              <div class="left" id="pi-deductions"></div>
+              <div class="right" id="pi-deduction-total"></div>
+            </div>
+            <div class="pi-frow">
+              <div class="left" id="pi-payments"></div>
+              <div class="right" id="pi-payment-total"></div>
+            </div>
+            <div class="pi-note" id="pi-note"></div>
+            <div class="pi-final">
+              <span id="pi-grand"></span>
+              <span id="pi-prevdue"></span>
+              <span id="pi-totalpaid"></span>
+              <span id="pi-balance"></span>
+            </div>
           </div>
         </div>
 
-        <!-- Solid accent line -->
-        <div class="print-accent print-only"></div>
-
-        <!-- Party row: name+address left, date right -->
-        <div class="print-party-row print-only" id="print-party-row">
-          <div>
-            <div class="print-party-type" id="p-party-type">গ্রাহক</div>
-            <div class="print-party-name" id="p-party-name"></div>
-            <div class="print-party-addr" id="p-party-addr"></div>
-          </div>
-          <div class="print-date" id="p-date"></div>
-        </div>
-
-        <!-- Product table title -->
-        <div class="print-items-title print-only">পণ্য তালিকা</div>
-
-        <!-- Screen form actions bar -->
+        <!-- Screen actions -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px" class="no-print">
           <div style="display:flex;align-items:center;gap:10px">
             <button class="btn btn-outline btn-sm" id="btn-back-list">← তালিকায় ফিরুন</button>
@@ -241,10 +222,8 @@
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-
-          <!-- LEFT COLUMN -->
+          <!-- LEFT -->
           <div>
-            <!-- Order meta (screen only) -->
             <div class="card no-print">
               <div class="card-title" style="margin-bottom:14px">অর্ডার তথ্য</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -267,28 +246,27 @@
               </div>
             </div>
 
-            <!-- Items card — visible both on screen and print -->
-            <div class="card">
-              <div class="card-title no-print" style="margin-bottom:12px">পণ্য তালিকা</div>
-              <div class="items-hdr no-print">
-                <span>পণ্য</span><span style="text-align:right">পরিমাণ</span>
-                <span style="text-align:right">মূল্য (৳)</span><span style="text-align:right">মোট (৳)</span><span></span>
+            <div class="card no-print">
+              <div class="card-title" style="margin-bottom:12px">পণ্য তালিকা</div>
+              <div class="items-hdr">
+                <span>পণ্য</span>
+                <span style="text-align:right">কোড</span>
+                <span style="text-align:right">মোট QTY</span>
+                <span style="text-align:right">QTY</span>
+                <span style="text-align:right">Free</span>
+                <span style="text-align:right">মূল্য</span>
+                <span style="text-align:right">মোট</span>
+                <span></span>
               </div>
-              <!-- Print table header -->
-              <table style="width:100%;border-collapse:collapse" class="print-only" id="print-items-table-header">
-                <thead><tr style="background:#f1f5f9">
-                  <th style="padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;border-bottom:2px solid #0f172a">পণ্যের নাম</th>
-                  <th style="padding:8px 10px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;border-bottom:2px solid #0f172a">পরিমাণ</th>
-                  <th style="padding:8px 10px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;border-bottom:2px solid #0f172a">একক মূল্য</th>
-                  <th style="padding:8px 10px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;border-bottom:2px solid #0f172a">মোট</th>
-                </tr></thead>
-              </table>
               <div id="order-items-container"></div>
-              <button class="btn btn-outline btn-sm no-print" id="btn-add-item" style="margin-top:8px">+ পণ্য যোগ করুন</button>
+              <button class="btn btn-outline btn-sm" id="btn-add-item" style="margin-top:8px">+ পণ্য যোগ করুন</button>
+              <div style="font-size:11px;color:var(--ink3);margin-top:8px;line-height:1.5">
+                💡 অফার পণ্যে: শুধু QTY দিলে = নিয়মিত মূল্য | QTY ও Free দুটোই দিলে = কার্যকর মূল্য
+              </div>
             </div>
           </div>
 
-          <!-- RIGHT COLUMN — screen only -->
+          <!-- RIGHT -->
           <div class="screen-only">
             <div class="card">
               <div class="card-title" style="margin-bottom:12px">পার্টির বর্তমান হিসাব</div>
@@ -296,7 +274,6 @@
                 <span style="font-size:13px;color:var(--ink2)">পূর্ববর্তী বাকি</span>
                 <span class="balance-pill balance-zero" id="prev-due-pill">৳0.00</span>
               </div>
-              <div style="font-size:11px;color:var(--ink3);margin-top:6px">পার্টি নির্বাচনে স্বয়ংক্রিয় আসবে</div>
             </div>
 
             <div class="card">
@@ -329,8 +306,11 @@
                   <label><input type="checkbox" id="pay-mobile" style="accent-color:var(--accent);margin-right:4px"> মোবাইল ব্যাংকিং (৳)</label>
                   <input type="number" class="sum-input" id="f-mobile" value="0" min="0"/>
                 </div>
+                <div class="sum-row" style="font-weight:700">
+                  <label style="color:var(--success)">মোট জমা</label>
+                  <span class="sum-val" id="f-payment-total" style="color:var(--success)">৳0.00</span>
+                </div>
 
-                <!-- Deductions -->
                 <div class="deduction-section">
                   <div class="deduction-title">➖ কর্তন / সমন্বয়</div>
                   <div class="sum-row"><label style="color:var(--success)">বেতন — Salary (৳)</label><input type="number" class="sum-input" id="f-salary" value="0" min="0"/></div>
@@ -354,34 +334,11 @@
 
             <div class="card">
               <div class="card-title" style="margin-bottom:10px">নোট</div>
-              <div class="field"><textarea id="f-notes" placeholder="অতিরিক্ত মন্তব্য…" style="min-height:56px"></textarea></div>
+              <div class="field"><textarea id="f-notes" placeholder="যেমন: 579-5K, 581-10B Pending" style="min-height:56px"></textarea></div>
             </div>
           </div>
         </div>
 
-        <!-- ══ PRINT FOOTER (print-only, appears after product table) ══ -->
-        <div class="print-footer print-only" id="print-footer">
-          <!-- Row 1: non-zero deductions LEFT | subtotal RIGHT -->
-          <div class="print-footer-row">
-            <div class="print-footer-left" id="pf-deductions"></div>
-            <div class="print-footer-right" id="pf-subtotal"></div>
-          </div>
-          <!-- Row 2: non-zero payments LEFT | discount RIGHT -->
-          <div class="print-footer-row">
-            <div class="print-footer-left" id="pf-payments"></div>
-            <div class="print-footer-right" id="pf-discount"></div>
-          </div>
-          <hr class="print-footer-divider"/>
-          <!-- Row 3: four totals across the full width -->
-          <div class="print-footer-totals">
-            <span id="pf-grand"></span>
-            <span id="pf-prevdue"></span>
-            <span id="pf-totalpaid"></span>
-            <span id="pf-balance"></span>
-          </div>
-        </div>
-
-        <!-- Bottom action bar (screen) -->
         <div class="no-print" style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
           <button class="btn btn-outline"  id="btn-back-list-2">বাতিল</button>
           <button class="btn btn-outline"  id="btn-print-order-2">🖨 Print</button>
@@ -398,7 +355,6 @@
 <script>
 buildNav('orders');
 
-/* ── STATE ── */
 let currentType = 'sales';
 let orders   = JSON.parse(localStorage.getItem('bf_orders')   || '[]');
 let parties  = JSON.parse(localStorage.getItem('bf_parties')  || '[]');
@@ -406,7 +362,6 @@ let products = JSON.parse(localStorage.getItem('bf_products') || '[]');
 let editOrderId = null;
 let itemCount   = 0;
 
-/* ── TABS ── */
 function setOrderType(type) {
   currentType = type;
   document.getElementById('tab-sales').className    = 'order-tab' + (type==='sales'    ? ' active-sales'    : '');
@@ -415,7 +370,6 @@ function setOrderType(type) {
   updateListStats();
 }
 
-/* ── NAVIGATION ── */
 function showList() {
   document.getElementById('order-list-section').style.display  = '';
   document.getElementById('order-form-section').style.display  = 'none';
@@ -448,7 +402,6 @@ function showForm(orderId = null) {
   }
 }
 
-/* ── NEW FORM ── */
 function initNewForm() {
   document.getElementById('f-date').value     = fmt.dateInput();
   document.getElementById('f-order-id').value = generateOrderId();
@@ -456,7 +409,7 @@ function initNewForm() {
   populatePartyDropdown();
   addOrderItem();
   recalc();
-  updatePrintHeader();
+  buildPrintInvoice();
 }
 
 function generateOrderId() {
@@ -466,7 +419,6 @@ function generateOrderId() {
   return `${prefix}-${String(last+1).padStart(4,'0')}`;
 }
 
-/* ── PARTY DROPDOWN ── */
 function populatePartyDropdown(selectedId='') {
   const sel = document.getElementById('f-party');
   const rel = parties.filter(p => currentType==='sales'
@@ -482,12 +434,12 @@ function populatePartyDropdown(selectedId='') {
 function onPartyChange() {
   const partyId = document.getElementById('f-party').value;
   const party   = parties.find(p => p.id === partyId);
-  if (!party) { document.getElementById('f-party-address').value=''; setPrevDue(0); updatePrintHeader(); return; }
+  if (!party) { document.getElementById('f-party-address').value=''; setPrevDue(0); buildPrintInvoice(); return; }
   document.getElementById('f-party-address').value = [party.address, party.area, party.phone].filter(Boolean).join(' | ');
   const partyOrders = orders.filter(o => o.partyId===partyId && o.orderId!==editOrderId);
   const prevDue = partyOrders.reduce((s,o) => s+parseFloat(o.balance||0), parseFloat(party.balance||0));
   setPrevDue(prevDue);
-  updatePrintHeader();
+  buildPrintInvoice();
 }
 
 function setPrevDue(amount) {
@@ -497,145 +449,205 @@ function setPrevDue(amount) {
   document.getElementById('f-prev-due-sum').textContent = fmt.currency(amount);
   recalc();
 }
-
 function getPrevDue() {
   return parseFloat(document.getElementById('f-prev-due-sum').textContent.replace(/[^\d.-]/g,''))||0;
 }
 
-/* ── LINE ITEMS ── */
-function addOrderItem(desc='', qty='', price='', productId='') {
+/* ── LINE ITEMS — product, code, totalQty, qty, free, eprice, amount ── */
+function addOrderItem(name='', code='', totalQty='', qty='', free='', price='', productId='') {
   itemCount++;
   const row = document.createElement('div');
   row.className = 'order-item-row';
 
   const prodOpts = products.filter(p=>p.status==='active')
-    .map(p=>`<option value="${p.id}" data-price="${p.effectivePrice||p.price}" data-name="${p.name}" ${p.id===productId?'selected':''}>${p.code?'['+p.code+'] ':''}${p.name}</option>`).join('');
+    .map(p=>`<option value="${p.id}" data-name="${p.name}" data-code="${p.code||''}" data-price="${p.price||0}" data-eprice="${p.effectivePrice||p.price||0}" data-hasoffer="${p.hasOffer?'1':'0'}" ${p.id===productId?'selected':''}>${p.code?'['+p.code+'] ':''}${p.name}</option>`).join('');
 
-  // Screen input row
   row.innerHTML = `
     <select class="oi-product"><option value="">— পণ্য —</option>${prodOpts}</select>
-    <input type="number" class="oi-qty"   placeholder="পরিমাণ" value="${qty}"   min="0" step="any"  style="text-align:right"/>
-    <input type="number" class="oi-price" placeholder="মূল্য"  value="${price}" min="0" step="0.01" style="text-align:right"/>
-    <input type="number" class="oi-total" readonly value="" style="text-align:right;background:var(--bg);font-weight:600"/>
+    <input type="text"   class="oi-code"     placeholder="কোড"  value="${code}"     style="text-align:right"/>
+    <input type="number" class="oi-totalqty" placeholder="মোট"  value="${totalQty}" min="0" style="text-align:right"/>
+    <input type="number" class="oi-qty"      placeholder="QTY"  value="${qty}"      min="0" style="text-align:right"/>
+    <input type="number" class="oi-free"     placeholder="Free" value="${free}"     min="0" style="text-align:right"/>
+    <input type="number" class="oi-price"    placeholder="মূল্য" value="${price}"    min="0" step="0.01" readonly style="text-align:right;background:var(--bg)"/>
+    <input type="number" class="oi-total"    readonly value="" style="text-align:right;background:var(--bg);font-weight:600"/>
     <button class="no-print" onclick="removeItem(this)" title="বাদ দিন"
-      style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:18px;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center">×</button>`;
+      style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:18px;width:30px;height:30px;border-radius:8px">×</button>`;
 
   const ps = row.querySelector('.oi-product');
-  if (productId) { const p=products.find(x=>x.id===productId); if(p&&!price) row.querySelector('.oi-price').value=p.effectivePrice||p.price||''; }
-  ps.addEventListener('change', () => { const o=ps.options[ps.selectedIndex]; if(o.dataset.price) row.querySelector('.oi-price').value=o.dataset.price; recalcRow(row); });
-  row.querySelector('.oi-qty').addEventListener('input',   () => recalcRow(row));
-  row.querySelector('.oi-price').addEventListener('input', () => recalcRow(row));
+  ps.addEventListener('change', () => {
+    const o = ps.options[ps.selectedIndex];
+    if (o.dataset.code) row.querySelector('.oi-code').value = o.dataset.code;
+    priceRow(row);
+  });
+  row.querySelector('.oi-code').addEventListener('input',     () => buildPrintInvoice());
+  row.querySelector('.oi-totalqty').addEventListener('input', () => buildPrintInvoice());
+  row.querySelector('.oi-qty').addEventListener('input',      () => priceRow(row));
+  row.querySelector('.oi-free').addEventListener('input',     () => priceRow(row));
 
   document.getElementById('order-items-container').appendChild(row);
-  if (qty&&price) recalcRow(row);
+  if (productId) priceRow(row); else recalc();
 }
 
-function removeItem(btn) { btn.closest('.order-item-row').remove(); recalc(); updatePrintFooter(); }
+/* ── SMART PRICING ──
+   Offered product: only QTY → regular price; QTY+Free → effective price.
+   Non-offered product: always regular price.
+*/
+function priceRow(row) {
+  const ps  = row.querySelector('.oi-product');
+  const opt = ps.options[ps.selectedIndex];
+  const qty  = parseFloat(row.querySelector('.oi-qty').value)||0;
+  const free = parseFloat(row.querySelector('.oi-free').value)||0;
+  let price = 0;
 
-function recalcRow(row) {
-  const q=parseFloat(row.querySelector('.oi-qty').value)||0;
-  const p=parseFloat(row.querySelector('.oi-price').value)||0;
-  row.querySelector('.oi-total').value=(q*p).toFixed(2);
+  if (opt && opt.value) {
+    const regular   = parseFloat(opt.dataset.price)  || 0;
+    const effective = parseFloat(opt.dataset.eprice) || regular;
+    const hasOffer  = opt.dataset.hasoffer === '1';
+    if (hasOffer && qty > 0 && free > 0) {
+      price = effective;   // both qty & free → effective price
+    } else {
+      price = regular;     // only qty (or no offer) → regular price
+    }
+    row.querySelector('.oi-price').value = price.toFixed(2);
+  } else {
+    // manual product: allow manual price editing
+    row.querySelector('.oi-price').removeAttribute('readonly');
+    row.querySelector('.oi-price').style.background = '#fff';
+    price = parseFloat(row.querySelector('.oi-price').value)||0;
+  }
+
+  row.querySelector('.oi-total').value = (qty * price).toFixed(2);
   recalc();
 }
 
-/* ── RECALC ALL TOTALS ── */
+function removeItem(btn) { btn.closest('.order-item-row').remove(); recalc(); }
+
 function recalc() {
   let subtotal=0;
   document.querySelectorAll('.oi-total').forEach(el => subtotal+=parseFloat(el.value)||0);
-  const discount    = parseFloat(document.getElementById('f-discount').value)||0;
-  const grand       = Math.max(0, subtotal-discount);
-  const prevDue     = getPrevDue();
-  const totalDue    = grand+prevDue;
-  const cash        = parseFloat(document.getElementById('f-cash').value)  ||0;
-  const bank        = parseFloat(document.getElementById('f-bank').value)  ||0;
-  const mobile      = parseFloat(document.getElementById('f-mobile').value)||0;
-  const salary      = parseFloat(document.getElementById('f-salary').value)||0;
-  const ta          = parseFloat(document.getElementById('f-ta').value)    ||0;
-  const da          = parseFloat(document.getElementById('f-da').value)    ||0;
-  const others      = parseFloat(document.getElementById('f-others').value)||0;
-  const totalDeduc  = salary+ta+da+others;
-  const totalPaid   = cash+bank+mobile+totalDeduc;
-  const balance     = totalDue-totalPaid;
+  const discount  = parseFloat(document.getElementById('f-discount').value)||0;
+  const grand     = Math.max(0, subtotal-discount);
+  const prevDue   = getPrevDue();
+  const totalDue  = grand+prevDue;
+  const cash      = parseFloat(document.getElementById('f-cash').value)  ||0;
+  const bank      = parseFloat(document.getElementById('f-bank').value)  ||0;
+  const mobile    = parseFloat(document.getElementById('f-mobile').value)||0;
+  const salary    = parseFloat(document.getElementById('f-salary').value)||0;
+  const ta        = parseFloat(document.getElementById('f-ta').value)    ||0;
+  const da        = parseFloat(document.getElementById('f-da').value)    ||0;
+  const others    = parseFloat(document.getElementById('f-others').value)||0;
+  const payTotal  = cash+bank+mobile;
+  const dedTotal  = salary+ta+da+others;
+  const totalPaid = payTotal+dedTotal;
+  const balance   = totalDue-totalPaid;
 
   document.getElementById('f-subtotal').textContent         = fmt.currency(subtotal);
   document.getElementById('f-grand-total').textContent      = fmt.currency(grand);
   document.getElementById('f-total-due').textContent        = fmt.currency(totalDue);
-  document.getElementById('f-total-deductions').textContent = fmt.currency(totalDeduc);
+  document.getElementById('f-payment-total').textContent    = fmt.currency(payTotal);
+  document.getElementById('f-total-deductions').textContent = fmt.currency(dedTotal);
   document.getElementById('f-total-paid').textContent       = fmt.currency(totalPaid);
 
   const balEl = document.getElementById('f-balance');
   balEl.textContent = fmt.currency(balance);
   balEl.className   = 'balance-pill '+(balance>0.009?'balance-due':balance<-0.009?'balance-ok':'balance-zero');
 
-  updatePrintFooter();
+  buildPrintInvoice();
 }
 
-/* ── UPDATE PRINT HEADER ── */
-function updatePrintHeader() {
-  const bizName    = localStorage.getItem('bf_biz_name')    || 'BizFlow';
-  const bizPhone   = localStorage.getItem('bf_biz_phone')   || '';
-  const bizAddress = localStorage.getItem('bf_biz_address') || '';
-  const orderId    = document.getElementById('f-order-id').value;
-  const date       = document.getElementById('f-date').value;
-  const partySel   = document.getElementById('f-party');
-  const partyName  = partySel.options[partySel.selectedIndex]
-    ? partySel.options[partySel.selectedIndex].text.replace(/^—.*—$/, '').trim() : '';
-  const partyAddr  = document.getElementById('f-party-address').value;
+/* ══ BUILD PRINT INVOICE ══ */
+function buildPrintInvoice() {
+  const bizName  = localStorage.getItem('bf_biz_name')    || 'BizFlow';
+  const bizAddr  = localStorage.getItem('bf_biz_address') || '';
+  const bizPhone = localStorage.getItem('bf_biz_phone')   || '';
+  const date     = document.getElementById('f-date').value;
+  const orderId  = document.getElementById('f-order-id').value;
+  const partySel = document.getElementById('f-party');
+  const party    = parties.find(p=>p.id===partySel.value)||{};
 
-  document.getElementById('p-biz-name').textContent    = bizName;
-  document.getElementById('p-biz-sub').textContent     = [bizAddress, bizPhone].filter(Boolean).join(', ');
-  document.getElementById('p-inv-type').textContent    = currentType==='sales' ? 'INVOICE' : 'PURCHASE ORDER';
-  document.getElementById('p-inv-orderid').textContent = 'অর্ডার নং: ' + orderId;
-  document.getElementById('p-party-type').textContent  = currentType==='sales' ? 'গ্রাহক' : 'সরবরাহকারী';
-  document.getElementById('p-party-name').textContent  = partyName;
-  document.getElementById('p-party-addr').textContent  = partyAddr;
-  document.getElementById('p-date').textContent        = 'তারিখ: ' + date;
+  // Header: supplier (business) always
+  document.getElementById('pi-biz-name').textContent = bizName;
+  document.getElementById('pi-inv-label').textContent = currentType==='sales' ? 'INVOICE' : 'PURCHASE ORDER';
+  document.getElementById('pi-inv-no').textContent = 'অর্ডার নং: ' + orderId;
+
+  // Super Depo line — supplier info, italic
+  document.getElementById('pi-depo').textContent =
+    'Super Depo: ' + [bizName, bizAddr, bizPhone].filter(Boolean).join(', ');
+
+  // Party block: sales→customer, purchase→business(party=supplier)
+  document.getElementById('pi-party-type').textContent = currentType==='sales' ? 'গ্রাহক' : 'সরবরাহকারী';
+  document.getElementById('pi-party-name').textContent = party.name || '';
+  document.getElementById('pi-party-addr').textContent =
+    [party.address, party.area, party.phone].filter(Boolean).join(' | ');
+  document.getElementById('pi-date').textContent = 'তারিখ: ' + (date ? new Date(date).toLocaleDateString('en-GB') : '');
+
+  // Items
+  const tbody = document.getElementById('pi-items');
+  tbody.innerHTML = '';
+  let sl=0;
+  document.querySelectorAll('.order-item-row').forEach(row => {
+    const ps   = row.querySelector('.oi-product');
+    const name = ps.value ? (ps.options[ps.selectedIndex]?.dataset?.name || '') : '';
+    const code = row.querySelector('.oi-code').value||'';
+    const totalQty = row.querySelector('.oi-totalqty').value||'';
+    const qty  = parseFloat(row.querySelector('.oi-qty').value)||0;
+    const free = parseFloat(row.querySelector('.oi-free').value)||0;
+    const price= parseFloat(row.querySelector('.oi-price').value)||0;
+    const amt  = qty*price;
+    if (qty<=0 && !name) return;
+    sl++;
+    const tr=document.createElement('tr');
+    tr.innerHTML =
+      '<td class="c">'+sl+'</td>'+
+      '<td>'+name+'</td>'+
+      '<td class="c">'+code+'</td>'+
+      '<td class="r">'+(totalQty||qty)+'</td>'+
+      '<td class="r">'+qty+'</td>'+
+      '<td class="r">'+(free||'')+'</td>'+
+      '<td class="r">'+price.toFixed(1)+'</td>'+
+      '<td class="r">'+amt.toFixed(1)+'</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Totals
+  const fv=id=>parseFloat(document.getElementById(id)?.value)||0;
+  let subtotal=0; document.querySelectorAll('.oi-total').forEach(el=>subtotal+=parseFloat(el.value)||0);
+  const discount=fv('f-discount');
+  const grand=Math.max(0,subtotal-discount);
+  const prevDue=getPrevDue();
+  const cash=fv('f-cash'), bank=fv('f-bank'), mobile=fv('f-mobile');
+  const salary=fv('f-salary'),ta=fv('f-ta'),da=fv('f-da'),others=fv('f-others');
+  const dedTotal=salary+ta+da+others;
+  const payTotal=cash+bank+mobile;
+  const totalPaid=dedTotal+payTotal;
+  const balance=(grand+prevDue)-totalPaid;
+
+  const C=v=>'৳'+v.toFixed(1);
+  // Deduction line + total inline
+  const dParts=[];
+  if(salary)dParts.push('বেতন: '+C(salary));
+  if(ta)dParts.push('TA: '+C(ta));
+  if(da)dParts.push('DA: '+C(da));
+  if(others)dParts.push('অন্যান্য: '+C(others));
+  document.getElementById('pi-deductions').textContent = dParts.length?dParts.join(' | '):'কর্তন: —';
+  document.getElementById('pi-deduction-total').textContent = 'মোট কর্তন: '+C(dedTotal);
+  // Payment line + total inline
+  const pParts=[];
+  if(cash)pParts.push('নগদ: '+C(cash));
+  if(bank)pParts.push('ব্যাংক: '+C(bank));
+  if(mobile)pParts.push('মোবাইল: '+C(mobile));
+  document.getElementById('pi-payments').textContent = pParts.length?pParts.join(' | '):'জমা: —';
+  document.getElementById('pi-payment-total').textContent = 'মোট জমা: '+C(payTotal);
+  // Note
+  const note=document.getElementById('f-notes').value||'';
+  document.getElementById('pi-note').textContent = note ? 'নোট: '+note : '';
+  // Final row
+  document.getElementById('pi-grand').textContent    = 'অর্ডার মোট: '+C(grand);
+  document.getElementById('pi-prevdue').textContent  = 'পূর্ববর্তী বাকি: '+C(prevDue);
+  document.getElementById('pi-totalpaid').textContent= 'মোট জমা+কর্তন: '+C(totalPaid);
+  document.getElementById('pi-balance').textContent  = 'অবশিষ্ট বাকি: '+C(balance);
 }
 
-/* ── UPDATE PRINT FOOTER ── */
-function updatePrintFooter() {
-  const fv  = id => parseFloat(document.getElementById(id)?.value)||0;
-  const subtotal = (() => { let s=0; document.querySelectorAll('.oi-total').forEach(el=>s+=parseFloat(el.value)||0); return s; })();
-  const discount = fv('f-discount');
-  const grand    = Math.max(0, subtotal-discount);
-  const prevDue  = getPrevDue();
-  const cash     = fv('f-cash');
-  const bank     = fv('f-bank');
-  const mobile   = fv('f-mobile');
-  const salary   = fv('f-salary');
-  const ta       = fv('f-ta');
-  const da       = fv('f-da');
-  const others   = fv('f-others');
-  const totalDeduc = salary+ta+da+others;
-  const totalPaid  = cash+bank+mobile+totalDeduc;
-  const balance    = (grand+prevDue)-totalPaid;
-
-  // Row 1 left: non-zero deductions only
-  const dedParts = [];
-  if (salary) dedParts.push(`বেতন: ${fmt.currency(salary)}`);
-  if (ta)     dedParts.push(`TA: ${fmt.currency(ta)}`);
-  if (da)     dedParts.push(`DA: ${fmt.currency(da)}`);
-  if (others) dedParts.push(`অন্যান্য: ${fmt.currency(others)}`);
-  document.getElementById('pf-deductions').textContent = dedParts.join('  |  ');
-  document.getElementById('pf-subtotal').textContent   = `সাবটোটাল: ${fmt.currency(subtotal)}`;
-
-  // Row 2 left: non-zero payments only
-  const payParts = [];
-  if (cash)   payParts.push(`নগদ: ${fmt.currency(cash)}`);
-  if (bank)   payParts.push(`ব্যাংক: ${fmt.currency(bank)}`);
-  if (mobile) payParts.push(`মোবাইল: ${fmt.currency(mobile)}`);
-  document.getElementById('pf-payments').textContent = payParts.join('  |  ');
-  document.getElementById('pf-discount').textContent = discount ? `ছাড়: ${fmt.currency(discount)}` : '';
-
-  // Row 3: four key figures
-  document.getElementById('pf-grand').textContent    = `এই অর্ডার মোট: ${fmt.currency(grand)}`;
-  document.getElementById('pf-prevdue').textContent  = `পূর্ববর্তী বাকি: ${fmt.currency(prevDue)}`;
-  document.getElementById('pf-totalpaid').textContent = `মোট জমা + কর্তন: ${fmt.currency(totalPaid)}`;
-  document.getElementById('pf-balance').textContent  = `অবশিষ্ট বাকি: ${fmt.currency(balance)}`;
-}
-
-/* ── COLLECT FORM DATA ── */
 function collectFormData() {
   const partyId = document.getElementById('f-party').value;
   const party   = parties.find(p=>p.id===partyId)||{};
@@ -647,8 +659,10 @@ function collectFormData() {
     const tot  = parseFloat(row.querySelector('.oi-total').value)||0;
     if (qty>0) items.push({
       productId:   ps.value,
-      productName: ps.value ? (ps.options[ps.selectedIndex]?.dataset?.name || ps.options[ps.selectedIndex]?.text?.replace(/^\[.*?\]\s*/,'') || '') : '',
-      qty, price, total: tot
+      productName: ps.value ? (ps.options[ps.selectedIndex]?.dataset?.name || '') : '',
+      code:     row.querySelector('.oi-code').value,
+      totalQty: row.querySelector('.oi-totalqty').value,
+      qty, free: row.querySelector('.oi-free').value, price, total: tot
     });
   });
   const subtotal  = items.reduce((s,i)=>s+i.total,0);
@@ -689,26 +703,20 @@ function collectFormData() {
   };
 }
 
-/* ── SAVE ORDER ── */
 async function saveOrder() {
   const data = collectFormData();
   if (!data.partyId)                  { toast('পার্টি নির্বাচন করুন','error'); return; }
   if (!data.date)                     { toast('তারিখ দিন','error'); return; }
   if (!JSON.parse(data.items).length) { toast('কমপক্ষে একটি পণ্য যোগ করুন','error'); return; }
-
   const btn = document.getElementById('btn-save-order');
   spinBtn(btn, true);
-
   if (editOrderId) {
     const idx = orders.findIndex(o=>o.orderId===editOrderId);
     if (idx>-1) orders[idx]=data; else orders.unshift(data);
-  } else {
-    orders.unshift(data);
-  }
+  } else { orders.unshift(data); }
   localStorage.setItem('bf_orders', JSON.stringify(orders));
   updatePartyBalance(data.partyId);
   toast(editOrderId ? 'অর্ডার আপডেট হয়েছে ✓' : 'অর্ডার সেভ হয়েছে ✓', 'success');
-
   if (BF.sheetUrl) {
     try { await API.post({ action:'saveOrder', ...data }); }
     catch(e) { toast('Sheet সিঙ্ক ব্যর্থ — স্থানীয়ভাবে সেভ হয়েছে','error'); }
@@ -724,7 +732,6 @@ function updatePartyBalance(partyId) {
   if (idx>-1) { parties[idx].currentBalance=balance; localStorage.setItem('bf_parties',JSON.stringify(parties)); }
 }
 
-/* ── POPULATE FORM (view/edit) ── */
 function populateForm(o) {
   currentType = o.orderType;
   setOrderType(currentType);
@@ -745,9 +752,9 @@ function populateForm(o) {
   document.getElementById('pay-mobile').checked = (o.paymentMode||'').includes('মোবাইল');
   populatePartyDropdown(o.partyId);
   setPrevDue(o.prevDue||0);
-  JSON.parse(o.items||'[]').forEach(it => addOrderItem(it.productName, it.qty, it.price, it.productId));
+  JSON.parse(o.items||'[]').forEach(it => addOrderItem(it.productName, it.code, it.totalQty, it.qty, it.free, it.price, it.productId));
   recalc();
-  updatePrintHeader();
+  buildPrintInvoice();
 }
 
 function resetForm() {
@@ -761,7 +768,6 @@ function resetForm() {
   itemCount = 0;
 }
 
-/* ── ORDER LIST ── */
 function getFilteredOrders() {
   const q  = document.getElementById('list-search').value.toLowerCase();
   const df = document.getElementById('list-date-from').value;
@@ -818,7 +824,7 @@ function viewOrder(id) {
   document.getElementById('btn-save-order-2').style.display = 'none';
 }
 function editOrder(id)  { const o=orders.find(x=>x.orderId===id); if(!o) return; currentType=o.orderType; showForm(id); }
-function printOrder(id) { const o=orders.find(x=>x.orderId===id); if(!o) return; currentType=o.orderType; showForm(id); setTimeout(()=>window.print(),600); }
+function printOrder(id) { const o=orders.find(x=>x.orderId===id); if(!o) return; currentType=o.orderType; showForm(id); setTimeout(()=>{buildPrintInvoice();window.print();},600); }
 function deleteOrder(id){
   if (!window.confirm(`"${id}" মুছে দেবেন?`)) return;
   orders=orders.filter(o=>o.orderId!==id);
@@ -838,18 +844,18 @@ function exportOrders() {
   a.download=`${currentType}_${fmt.dateInput()}.csv`; a.click();
 }
 
-/* ── EVENTS ── */
 document.getElementById('btn-new-order').addEventListener('click',  ()=>showForm());
 document.getElementById('btn-back-list').addEventListener('click',   showList);
 document.getElementById('btn-back-list-2').addEventListener('click', showList);
 document.getElementById('btn-save-order').addEventListener('click',  saveOrder);
 document.getElementById('btn-save-order-2').addEventListener('click',saveOrder);
-document.getElementById('btn-print-order').addEventListener('click',  ()=>{ updatePrintHeader(); updatePrintFooter(); window.print(); });
-document.getElementById('btn-print-order-2').addEventListener('click',()=>{ updatePrintHeader(); updatePrintFooter(); window.print(); });
+document.getElementById('btn-print-order').addEventListener('click',  ()=>{ buildPrintInvoice(); window.print(); });
+document.getElementById('btn-print-order-2').addEventListener('click',()=>{ buildPrintInvoice(); window.print(); });
 document.getElementById('btn-add-item').addEventListener('click', ()=>addOrderItem());
 document.getElementById('btn-export-list').addEventListener('click', exportOrders);
 document.getElementById('f-party').addEventListener('change', onPartyChange);
-document.getElementById('f-date').addEventListener('change', updatePrintHeader);
+document.getElementById('f-date').addEventListener('change', buildPrintInvoice);
+document.getElementById('f-notes').addEventListener('input', buildPrintInvoice);
 ['f-discount','f-cash','f-bank','f-mobile','f-salary','f-ta','f-da','f-others']
   .forEach(id => document.getElementById(id).addEventListener('input', recalc));
 ['list-search','list-date-from','list-date-to','list-status'].forEach(id => {
@@ -857,12 +863,10 @@ document.getElementById('f-date').addEventListener('change', updatePrintHeader);
   document.getElementById(id).addEventListener('change', renderOrderList);
 });
 
-/* ── INIT ── */
 const urlParams = new URLSearchParams(window.location.search);
 const urlType   = urlParams.get('type');
 if (urlType==='purchase'||urlType==='sales') { currentType=urlType; setOrderType(urlType); }
 else { setOrderType('sales'); }
-
 updateListStats();
 renderOrderList();
 if (urlParams.get('new')==='1') showForm();
