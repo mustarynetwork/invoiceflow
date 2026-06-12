@@ -139,6 +139,7 @@
         if (config && !config.error) {
           if (config.pw_super) { localStorage.setItem('bf_pw_super', config.pw_super); BF.roles.super = config.pw_super; }
           if (config.pw_admin) { localStorage.setItem('bf_pw_admin', config.pw_admin); BF.roles.admin = config.pw_admin; }
+          if (config.pw_viewer) { localStorage.setItem('bf_pw_viewer', config.pw_viewer); BF.roles.viewer = config.pw_viewer; }
         }
       } catch(e) {
         // Sheet unreachable — use cached passwords (still works offline)
