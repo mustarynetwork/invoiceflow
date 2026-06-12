@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════════
    BizFlow — Shared Utilities v1.2
-   KEY CHANGE: API.get() now uses POST to bypass CORS.
+   KEY CHANGE: API.fetch() now uses JSONP to bypass CORS.
    GitHub Pages cannot do GET to Apps Script due to CORS.
-   All data fetching goes through POST which works fine.
+   All data fetching goes through script tags which works fine.
 ═══════════════════════════════════════════════════ */
 
 const BF = {
@@ -52,8 +52,8 @@ const Auth = {
 
 /* ════════════════════════════════════════
    API
-   ALL requests use POST to avoid CORS.
-   Apps Script v1.2 handles read actions in doPost().
+   Fetch data via JSONP (bypasses CORS entirely)
+   Post data via no-cors mode (fire and forget)
 ════════════════════════════════════════ */
 const API = {
 
@@ -156,73 +156,6 @@ const API = {
     }
   },
 };
-    if (!BF.sheetUrl) throw new Error('Sheet URL সেট নেই। Settings-এ গিয়ে URL দিন।');
-    const res = await fetch(BF.sheetUrl, {
-      method:  'POST',
-      mode:    'no-cors',   // Required for cross-origin to Apps Script
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload),
-    });
-    // no-cors returns opaque response — we cannot read it but it succeeds
-    return true;
-  },
-
-  // Fetch data — uses POST with cors mode so we can read the response
-  async fetch(action, extraData = {}) {
-    if (!BF.sheetUrl) throw new Error('Sheet URL সেট নেই।');
-    const res = await fetch(BF.sheetUrl, {
-      method:  'POST',
-      mode:    'cors',      // Need to read response — Apps Script allows this for POST
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ action, ...extraData }),
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return await res.json();
-  },
-
-  /* ── SYNC ALL DATA from Sheet after login ── */
-  async syncAllData(onProgress) {
-    if (!BF.sheetUrl) return false;
-    try {
-      onProgress && onProgress('কনফিগ লোড হচ্ছে…');
-      const config = await API.fetch('getConfig');
-      if (config && !config.error) {
-        if (config.pw_super) { localStorage.setItem('bf_pw_super', config.pw_super); BF.roles.super = config.pw_super; }
-        if (config.pw_admin) { localStorage.setItem('bf_pw_admin', config.pw_admin); BF.roles.admin = config.pw_admin; }
-        if (config.biz_name)    localStorage.setItem('bf_biz_name',    config.biz_name);
-        if (config.biz_phone)   localStorage.setItem('bf_biz_phone',   config.biz_phone);
-        if (config.biz_address) localStorage.setItem('bf_biz_address', config.biz_address);
-      }
-
-      onProgress && onProgress('পার্টি লিস্ট লোড হচ্ছে…');
-      const parties = await API.fetch('getParties');
-      if (Array.isArray(parties)) localStorage.setItem('bf_parties', JSON.stringify(parties));
-
-      onProgress && onProgress('পণ্য তালিকা লোড হচ্ছে…');
-      const products = await API.fetch('getProducts');
-      if (Array.isArray(products)) {
-        localStorage.setItem('bf_products', JSON.stringify(
-          products.map(p => ({ ...p, hasOffer: p.hasOffer === 'true' || p.hasOffer === true }))
-        ));
-      }
-
-      onProgress && onProgress('অর্ডার লোড হচ্ছে…');
-      const orders = await API.fetch('getOrders');
-      if (Array.isArray(orders)) localStorage.setItem('bf_orders', JSON.stringify(orders));
-
-      // Update stat counters
-      if (Array.isArray(parties))  localStorage.setItem('bf_count_parties',  parties.length);
-      if (Array.isArray(products)) localStorage.setItem('bf_count_products', products.length);
-      if (Array.isArray(orders))   localStorage.setItem('bf_count_sales',    orders.filter(o => o.orderType === 'sales').length);
-      localStorage.setItem('bf_last_sync', new Date().toISOString());
-
-      return true;
-    } catch(e) {
-      console.warn('Sync failed:', e.message);
-      return false;
-    }
-  },
-};
 
 /* ════════════════════════════════════════
    TOAST NOTIFICATION
@@ -269,7 +202,7 @@ const fmt = {
 function spinBtn(btn, loading) {
   if (loading) {
     btn.dataset.orig = btn.innerHTML;
-    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:bf-spin .6s linear infinite;vertical-align:middle"></span> অপেক্ষা করুন…';
+    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:bf-spin .6s linear infinite;vertical-align:middle"></span>';
     btn.disabled = true;
   } else {
     btn.innerHTML = btn.dataset.orig || btn.innerHTML;
