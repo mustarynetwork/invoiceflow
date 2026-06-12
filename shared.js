@@ -68,39 +68,15 @@ const Auth = {
 const API = {
 
   /* ── WRITE — no-cors POST (fire and forget) ── */
-  post(payload) {
-  return new Promise((resolve, reject) => {
-    if (!BF.sheetUrl) { reject(new Error('Sheet URL সেট নেই। Settings-এ গিয়ে URL দিন।')); return; }
-
-    const cbName = '_bfcb_' + Date.now() + '_' + Math.floor(Math.random() * 9999);
-
-    const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error('Timeout — Apps Script সাড়া দিচ্ছে না'));
-    }, 15000);
-
-    function cleanup() {
-      clearTimeout(timer);
-      delete window[cbName];
-      const el = document.getElementById(cbName);
-      if (el) el.remove();
-    }
-
-    window[cbName] = function(data) {
-      cleanup();
-      resolve(data);
-    };
-
-    const url = new URL(BF.sheetUrl);
-    url.searchParams.set('callback', cbName);
-    Object.entries(payload).forEach(([k, v]) => url.searchParams.set(k, String(v)));
-
-    const script = document.createElement('script');
-    script.id = cbName;
-    script.src = url.toString();
-    script.onerror = () => { cleanup(); reject(new Error('Script load failed')); };
-    document.head.appendChild(script);
+  async post(payload) {
+  if (!BF.sheetUrl) throw new Error('Sheet URL সেট নেই। Settings-এ গিয়ে URL দিন।');
+  await fetch(BF.sheetUrl, {
+    method:  'POST',
+    mode:    'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(payload),
   });
+  return true;
 },
 
   /* ── READ — JSONP via <script> tag (bypasses CORS entirely) ── */
