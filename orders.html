@@ -11,12 +11,12 @@
     .order-tab.active-purchase{background:#3b82f6;color:#fff}
     .order-tab.active-sales{background:#059669;color:#fff}
 
-    .order-item-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 36px;gap:8px;margin-bottom:8px;align-items:center}
+    .order-item-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 36px;gap:8px;margin-bottom:8px;align-items:center}
     .order-item-row input,.order-item-row select{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;color:var(--ink);outline:none;width:100%;transition:border-color .2s}
     .order-item-row input:focus,.order-item-row select:focus{border-color:var(--accent)}
     .order-item-row input[readonly]{background:var(--bg);color:var(--ink2)}
-    .items-hdr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 36px;gap:8px;padding:0 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:6px}
-    @media(max-width:600px){.order-item-row{grid-template-columns:1fr 70px 80px 80px 30px;gap:5px}.items-hdr{display:none}}
+    .items-hdr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 36px;gap:8px;padding:0 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:6px}
+    @media(max-width:600px){.order-item-row{grid-template-columns:1fr 60px 60px 70px 70px 28px;gap:4px}.items-hdr{display:none}}
 
     .summary-box{background:var(--bg);border-radius:12px;padding:18px}
     .sum-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border)}
@@ -37,96 +37,50 @@
     .badge-due{background:#fee2e2;color:#dc2626}
 
     /* ════════════════════════════════════════
-       PRINT STYLES
+       PRINT — OLYMPIC INVOICE LAYOUT
     ════════════════════════════════════════ */
-    /* Hide print elements on screen */
     .print-only{display:none!important}
 
     @media print{
-      /* Hide everything except the invoice */
       .no-print{display:none!important}
       body{background:#fff;font-size:12px;margin:0;padding:0}
       .bf-layout{display:block}
       .bf-nav,.bf-topbar{display:none!important}
       .bf-main{margin-left:0!important}
-      .bf-body{padding:16px!important}
+      .bf-body{padding:0!important}
       #order-list-section{display:none!important}
       #order-form-section{display:block!important}
-
-      /* Hide screen-only right column cards */
       .screen-only{display:none!important}
-
-      /* Show print elements */
       .print-only{display:block!important}
+      .card{box-shadow:none!important;border:none!important;padding:0!important;margin:0!important}
 
-      /* Cards become plain boxes */
-      .card{box-shadow:none!important;border:none!important;padding:0!important;margin-bottom:10px!important}
-
-      /* ── PRINT INVOICE HEADER ── */
-      .print-inv-header{
-        display:flex!important;
-        justify-content:space-between;
-        align-items:flex-start;
-        margin-bottom:14px;
-        padding-bottom:14px;
-        border-bottom:3px solid #0f172a;
-      }
-      .print-biz-left{}
-      .print-biz-name{font-size:20px;font-weight:800;color:#0f172a;line-height:1.2;font-family:'Syne',sans-serif}
-      .print-biz-sub{font-size:12px;color:#444;margin-top:4px}
-      .print-inv-right{text-align:right}
-      .print-inv-type{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#0f172a}
-      .print-inv-orderid{font-size:13px;color:#444;margin-top:5px;font-weight:600}
-
-      /* ── SOLID LINE (accent bar) ── */
-      .print-accent{display:block!important;height:4px;background:linear-gradient(90deg,#4f46e5,#059669);border-radius:2px;margin:12px 0 14px}
-
-      /* ── PARTY + DATE ROW ── */
-      .print-party-row{
-        display:flex!important;
-        justify-content:space-between;
-        align-items:flex-start;
-        margin-bottom:16px;
-        padding-bottom:12px;
-        border-bottom:1px solid #ddd;
-      }
-      .print-party-name{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:3px}
-      .print-party-addr{font-size:12px;color:#555}
-      .print-party-type{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-      .print-date{font-size:13px;font-weight:600;color:#0f172a;text-align:right}
-
-      /* ── PRODUCT TABLE ── */
-      .print-items-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#555;margin-bottom:8px}
-
-      /* ── PRINT FOOTER SUMMARY ── */
-      .print-footer{
-        display:block!important;
-        margin-top:16px;
-        border-top:1px solid #ddd;
-        padding-top:12px;
-      }
-      .print-footer-row{
-        display:flex!important;
-        justify-content:space-between;
-        align-items:baseline;
-        font-size:12px;
-        margin-bottom:6px;
-      }
-      .print-footer-left{color:#333;flex:1}
-      .print-footer-right{font-weight:600;color:#0f172a;text-align:right;flex:0 0 120px}
-      .print-footer-divider{border:none;border-top:1px dashed #ccc;margin:8px 0}
-      .print-footer-totals{
-        display:flex!important;
-        justify-content:space-between;
-        margin-top:10px;
-        padding-top:10px;
-        border-top:2px solid #0f172a;
-        font-size:12px;
-        font-weight:700;
-      }
-      .print-footer-totals span{flex:1;text-align:center}
-      .print-footer-totals span:first-child{text-align:left}
-      .print-footer-totals span:last-child{text-align:right}
+      #print-invoice{display:block!important;border:2px solid #000;font-family:Arial,sans-serif;color:#000}
+      .pi-head{text-align:center;padding:10px 8px 6px;border-bottom:2px solid #000}
+      .pi-company{font-size:18px;font-weight:bold;letter-spacing:.5px}
+      .pi-company-sub{font-style:italic;font-size:12px;margin-top:1px}
+      .pi-title{font-size:20px;font-weight:bold;margin-top:8px}
+      .pi-depo{font-style:italic;font-weight:bold;font-size:13px;text-align:center;padding:6px;border-bottom:1px solid #000}
+      .pi-datecenter{text-align:center;font-style:italic;font-size:11px;padding:3px;border-bottom:1px solid #000}
+      .pi-metarow{display:flex;border-bottom:1px solid #000}
+      .pi-metalabel{width:150px;padding:5px 8px;border-right:1px solid #000;font-weight:bold;flex-shrink:0}
+      .pi-metaval{flex:1;padding:5px 8px;text-align:center}
+      .pi-pending{padding:5px 8px;font-weight:bold;font-size:12px;border-bottom:2px solid #000}
+      .pi-table{width:100%;border-collapse:collapse}
+      .pi-table th{background:#e5e7eb;border:1px solid #000;padding:4px 6px;font-size:12px;text-align:left;font-weight:bold}
+      .pi-table td{border:1px solid #000;padding:4px 6px;font-size:12px}
+      .pi-table .r{text-align:right}
+      .pi-table .c{text-align:center}
+      .pi-totals{display:flex;border-top:2px solid #000}
+      .pi-totleft{flex:1;border-right:2px solid #000;padding:8px}
+      .pi-totleft .row{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:6px}
+      .pi-totleft .row label{font-size:12px;font-weight:bold}
+      .pi-totleft .box{border:1px solid #000;min-width:90px;padding:3px 8px;text-align:right;font-size:12px}
+      .pi-totright{width:230px}
+      .pi-totright .row{display:flex;justify-content:space-between;padding:5px 10px;border-bottom:1px solid #000;font-size:12px}
+      .pi-totright .row:last-child{border-bottom:none}
+      .pi-totright .lbl{font-weight:bold}
+      .pi-totright .val{font-weight:bold}
+      .pi-totright .balance{background:#f0f0f0}
     }
   </style>
 </head>
@@ -198,35 +152,57 @@
       <!-- ════ ORDER FORM ════ -->
       <section id="order-form-section" style="display:none">
 
-        <!-- ══ PRINT INVOICE (print-only elements) ══ -->
-
-        <!-- Top: Business name left, Invoice type + order no right -->
-        <div class="print-inv-header print-only" id="print-inv-header">
-          <div class="print-biz-left">
-            <div class="print-biz-name" id="p-biz-name"></div>
-            <div class="print-biz-sub"  id="p-biz-sub"></div>
+        <!-- ═══ OLYMPIC PRINT INVOICE (print only) ═══ -->
+        <div id="print-invoice" class="print-only">
+          <div class="pi-head">
+            <div class="pi-company" id="pi-company">OLYMPIC INDUSTRIES PLC</div>
+            <div class="pi-company-sub" id="pi-companysub">Narayangonj, Dhaka</div>
+            <div class="pi-title">Invoice</div>
           </div>
-          <div class="print-inv-right">
-            <div class="print-inv-type"    id="p-inv-type">INVOICE</div>
-            <div class="print-inv-orderid" id="p-inv-orderid"></div>
+          <div class="pi-depo" id="pi-depo">Super Depo: Mustari Enterprise, Chakaria, Coxsbazar</div>
+          <div class="pi-datecenter" id="pi-datecenter"></div>
+          <div class="pi-metarow">
+            <div class="pi-metalabel">Date</div>
+            <div class="pi-metaval" id="pi-date"></div>
+          </div>
+          <div class="pi-metarow">
+            <div class="pi-metalabel">Customer Name</div>
+            <div class="pi-metaval" id="pi-customer"></div>
+          </div>
+          <div class="pi-metarow">
+            <div class="pi-metalabel" id="pi-address"></div>
+            <div class="pi-metaval" id="pi-phone"></div>
+          </div>
+          <div class="pi-pending" id="pi-pending"></div>
+          <table class="pi-table">
+            <thead>
+              <tr>
+                <th class="c" style="width:28px">Sl.</th>
+                <th>Items</th>
+                <th class="c" style="width:55px">Code</th>
+                <th class="c" style="width:60px">Total QTY</th>
+                <th class="c" style="width:50px">QTY</th>
+                <th class="c" style="width:45px">Free</th>
+                <th class="c" style="width:60px">E. Price</th>
+                <th class="c" style="width:70px">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="pi-items"></tbody>
+          </table>
+          <div class="pi-totals">
+            <div class="pi-totleft">
+              <div class="row"><label>Salary, TA, DA, Damage, Others</label><div class="box" id="pi-salary">0</div></div>
+              <div class="row"><label>Bank Deposit</label><div class="box" id="pi-bank">0</div></div>
+              <div class="row"><label>Cash Deposit</label><div class="box" id="pi-cash">0</div></div>
+            </div>
+            <div class="pi-totright">
+              <div class="row"><span class="lbl">Total Amount</span><span class="val" id="pi-total">0</span></div>
+              <div class="row"><span class="lbl">Total Deposit</span><span class="val" id="pi-deposit">0</span></div>
+              <div class="row"><span class="lbl">Previous Due</span><span class="val" id="pi-prevdue">0</span></div>
+              <div class="row balance"><span class="lbl">Balance Due</span><span class="val" id="pi-balance">0</span></div>
+            </div>
           </div>
         </div>
-
-        <!-- Solid accent line -->
-        <div class="print-accent print-only"></div>
-
-        <!-- Party row: name+address left, date right -->
-        <div class="print-party-row print-only" id="print-party-row">
-          <div>
-            <div class="print-party-type" id="p-party-type">গ্রাহক</div>
-            <div class="print-party-name" id="p-party-name"></div>
-            <div class="print-party-addr" id="p-party-addr"></div>
-          </div>
-          <div class="print-date" id="p-date"></div>
-        </div>
-
-        <!-- Product table title -->
-        <div class="print-items-title print-only">পণ্য তালিকা</div>
 
         <!-- Screen form actions bar -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px" class="no-print">
@@ -244,7 +220,6 @@
 
           <!-- LEFT COLUMN -->
           <div>
-            <!-- Order meta (screen only) -->
             <div class="card no-print">
               <div class="card-title" style="margin-bottom:14px">অর্ডার তথ্য</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -267,28 +242,22 @@
               </div>
             </div>
 
-            <!-- Items card — visible both on screen and print -->
-            <div class="card">
-              <div class="card-title no-print" style="margin-bottom:12px">পণ্য তালিকা</div>
-              <div class="items-hdr no-print">
-                <span>পণ্য</span><span style="text-align:right">পরিমাণ</span>
-                <span style="text-align:right">মূল্য (৳)</span><span style="text-align:right">মোট (৳)</span><span></span>
+            <div class="card no-print">
+              <div class="card-title" style="margin-bottom:12px">পণ্য তালিকা</div>
+              <div class="items-hdr">
+                <span>পণ্য</span>
+                <span style="text-align:right">কোড</span>
+                <span style="text-align:right">পরিমাণ</span>
+                <span style="text-align:right">মূল্য (৳)</span>
+                <span style="text-align:right">মোট (৳)</span>
+                <span></span>
               </div>
-              <!-- Print table header -->
-              <table style="width:100%;border-collapse:collapse" class="print-only" id="print-items-table-header">
-                <thead><tr style="background:#f1f5f9">
-                  <th style="padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;border-bottom:2px solid #0f172a">পণ্যের নাম</th>
-                  <th style="padding:8px 10px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;border-bottom:2px solid #0f172a">পরিমাণ</th>
-                  <th style="padding:8px 10px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;border-bottom:2px solid #0f172a">একক মূল্য</th>
-                  <th style="padding:8px 10px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;border-bottom:2px solid #0f172a">মোট</th>
-                </tr></thead>
-              </table>
               <div id="order-items-container"></div>
-              <button class="btn btn-outline btn-sm no-print" id="btn-add-item" style="margin-top:8px">+ পণ্য যোগ করুন</button>
+              <button class="btn btn-outline btn-sm" id="btn-add-item" style="margin-top:8px">+ পণ্য যোগ করুন</button>
             </div>
           </div>
 
-          <!-- RIGHT COLUMN — screen only -->
+          <!-- RIGHT COLUMN -->
           <div class="screen-only">
             <div class="card">
               <div class="card-title" style="margin-bottom:12px">পার্টির বর্তমান হিসাব</div>
@@ -330,7 +299,6 @@
                   <input type="number" class="sum-input" id="f-mobile" value="0" min="0"/>
                 </div>
 
-                <!-- Deductions -->
                 <div class="deduction-section">
                   <div class="deduction-title">➖ কর্তন / সমন্বয়</div>
                   <div class="sum-row"><label style="color:var(--success)">বেতন — Salary (৳)</label><input type="number" class="sum-input" id="f-salary" value="0" min="0"/></div>
@@ -353,35 +321,13 @@
             </div>
 
             <div class="card">
-              <div class="card-title" style="margin-bottom:10px">নোট</div>
-              <div class="field"><textarea id="f-notes" placeholder="অতিরিক্ত মন্তব্য…" style="min-height:56px"></textarea></div>
+              <div class="card-title" style="margin-bottom:10px">নোট / Pending</div>
+              <div class="field"><textarea id="f-notes" placeholder="যেমন: 579-5K, 581-10B Pending" style="min-height:56px"></textarea></div>
             </div>
           </div>
         </div>
 
-        <!-- ══ PRINT FOOTER (print-only, appears after product table) ══ -->
-        <div class="print-footer print-only" id="print-footer">
-          <!-- Row 1: non-zero deductions LEFT | subtotal RIGHT -->
-          <div class="print-footer-row">
-            <div class="print-footer-left" id="pf-deductions"></div>
-            <div class="print-footer-right" id="pf-subtotal"></div>
-          </div>
-          <!-- Row 2: non-zero payments LEFT | discount RIGHT -->
-          <div class="print-footer-row">
-            <div class="print-footer-left" id="pf-payments"></div>
-            <div class="print-footer-right" id="pf-discount"></div>
-          </div>
-          <hr class="print-footer-divider"/>
-          <!-- Row 3: four totals across the full width -->
-          <div class="print-footer-totals">
-            <span id="pf-grand"></span>
-            <span id="pf-prevdue"></span>
-            <span id="pf-totalpaid"></span>
-            <span id="pf-balance"></span>
-          </div>
-        </div>
-
-        <!-- Bottom action bar (screen) -->
+        <!-- Bottom action bar -->
         <div class="no-print" style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
           <button class="btn btn-outline"  id="btn-back-list-2">বাতিল</button>
           <button class="btn btn-outline"  id="btn-print-order-2">🖨 Print</button>
@@ -456,7 +402,7 @@ function initNewForm() {
   populatePartyDropdown();
   addOrderItem();
   recalc();
-  updatePrintHeader();
+  buildPrintInvoice();
 }
 
 function generateOrderId() {
@@ -482,12 +428,12 @@ function populatePartyDropdown(selectedId='') {
 function onPartyChange() {
   const partyId = document.getElementById('f-party').value;
   const party   = parties.find(p => p.id === partyId);
-  if (!party) { document.getElementById('f-party-address').value=''; setPrevDue(0); updatePrintHeader(); return; }
+  if (!party) { document.getElementById('f-party-address').value=''; setPrevDue(0); buildPrintInvoice(); return; }
   document.getElementById('f-party-address').value = [party.address, party.area, party.phone].filter(Boolean).join(' | ');
   const partyOrders = orders.filter(o => o.partyId===partyId && o.orderId!==editOrderId);
   const prevDue = partyOrders.reduce((s,o) => s+parseFloat(o.balance||0), parseFloat(party.balance||0));
   setPrevDue(prevDue);
-  updatePrintHeader();
+  buildPrintInvoice();
 }
 
 function setPrevDue(amount) {
@@ -502,18 +448,18 @@ function getPrevDue() {
   return parseFloat(document.getElementById('f-prev-due-sum').textContent.replace(/[^\d.-]/g,''))||0;
 }
 
-/* ── LINE ITEMS ── */
-function addOrderItem(desc='', qty='', price='', productId='') {
+/* ── LINE ITEMS (now with Code column) ── */
+function addOrderItem(name='', code='', qty='', price='', productId='') {
   itemCount++;
   const row = document.createElement('div');
   row.className = 'order-item-row';
 
   const prodOpts = products.filter(p=>p.status==='active')
-    .map(p=>`<option value="${p.id}" data-price="${p.effectivePrice||p.price}" data-name="${p.name}" ${p.id===productId?'selected':''}>${p.code?'['+p.code+'] ':''}${p.name}</option>`).join('');
+    .map(p=>`<option value="${p.id}" data-price="${p.effectivePrice||p.price}" data-name="${p.name}" data-code="${p.code||''}" ${p.id===productId?'selected':''}>${p.code?'['+p.code+'] ':''}${p.name}</option>`).join('');
 
-  // Screen input row
   row.innerHTML = `
     <select class="oi-product"><option value="">— পণ্য —</option>${prodOpts}</select>
+    <input type="text"   class="oi-code"  placeholder="কোড"  value="${code}"  style="text-align:right"/>
     <input type="number" class="oi-qty"   placeholder="পরিমাণ" value="${qty}"   min="0" step="any"  style="text-align:right"/>
     <input type="number" class="oi-price" placeholder="মূল্য"  value="${price}" min="0" step="0.01" style="text-align:right"/>
     <input type="number" class="oi-total" readonly value="" style="text-align:right;background:var(--bg);font-weight:600"/>
@@ -522,7 +468,13 @@ function addOrderItem(desc='', qty='', price='', productId='') {
 
   const ps = row.querySelector('.oi-product');
   if (productId) { const p=products.find(x=>x.id===productId); if(p&&!price) row.querySelector('.oi-price').value=p.effectivePrice||p.price||''; }
-  ps.addEventListener('change', () => { const o=ps.options[ps.selectedIndex]; if(o.dataset.price) row.querySelector('.oi-price').value=o.dataset.price; recalcRow(row); });
+  ps.addEventListener('change', () => {
+    const o=ps.options[ps.selectedIndex];
+    if(o.dataset.price) row.querySelector('.oi-price').value=o.dataset.price;
+    if(o.dataset.code)  row.querySelector('.oi-code').value =o.dataset.code;
+    recalcRow(row);
+  });
+  row.querySelector('.oi-code').addEventListener('input',  () => buildPrintInvoice());
   row.querySelector('.oi-qty').addEventListener('input',   () => recalcRow(row));
   row.querySelector('.oi-price').addEventListener('input', () => recalcRow(row));
 
@@ -530,7 +482,7 @@ function addOrderItem(desc='', qty='', price='', productId='') {
   if (qty&&price) recalcRow(row);
 }
 
-function removeItem(btn) { btn.closest('.order-item-row').remove(); recalc(); updatePrintFooter(); }
+function removeItem(btn) { btn.closest('.order-item-row').remove(); recalc(); }
 
 function recalcRow(row) {
   const q=parseFloat(row.querySelector('.oi-qty').value)||0;
@@ -568,71 +520,79 @@ function recalc() {
   balEl.textContent = fmt.currency(balance);
   balEl.className   = 'balance-pill '+(balance>0.009?'balance-due':balance<-0.009?'balance-ok':'balance-zero');
 
-  updatePrintFooter();
+  buildPrintInvoice();
 }
 
-/* ── UPDATE PRINT HEADER ── */
-function updatePrintHeader() {
-  const bizName    = localStorage.getItem('bf_biz_name')    || 'BizFlow';
-  const bizPhone   = localStorage.getItem('bf_biz_phone')   || '';
-  const bizAddress = localStorage.getItem('bf_biz_address') || '';
-  const orderId    = document.getElementById('f-order-id').value;
-  const date       = document.getElementById('f-date').value;
-  const partySel   = document.getElementById('f-party');
-  const partyName  = partySel.options[partySel.selectedIndex]
-    ? partySel.options[partySel.selectedIndex].text.replace(/^—.*—$/, '').trim() : '';
-  const partyAddr  = document.getElementById('f-party-address').value;
+/* ══════════════════════════════════════════
+   BUILD OLYMPIC PRINT INVOICE
+══════════════════════════════════════════ */
+function buildPrintInvoice() {
+  const bizName  = localStorage.getItem('bf_biz_name')    || 'OLYMPIC INDUSTRIES PLC';
+  const bizAddr  = localStorage.getItem('bf_biz_address') || 'Narayangonj, Dhaka';
+  const date     = document.getElementById('f-date').value;
+  const partySel = document.getElementById('f-party');
+  const party    = parties.find(p=>p.id===partySel.value)||{};
+  const partyName= party.name || '';
 
-  document.getElementById('p-biz-name').textContent    = bizName;
-  document.getElementById('p-biz-sub').textContent     = [bizAddress, bizPhone].filter(Boolean).join(', ');
-  document.getElementById('p-inv-type').textContent    = currentType==='sales' ? 'INVOICE' : 'PURCHASE ORDER';
-  document.getElementById('p-inv-orderid').textContent = 'অর্ডার নং: ' + orderId;
-  document.getElementById('p-party-type').textContent  = currentType==='sales' ? 'গ্রাহক' : 'সরবরাহকারী';
-  document.getElementById('p-party-name').textContent  = partyName;
-  document.getElementById('p-party-addr').textContent  = partyAddr;
-  document.getElementById('p-date').textContent        = 'তারিখ: ' + date;
-}
+  // Header
+  document.getElementById('pi-company').textContent    = bizName;
+  document.getElementById('pi-companysub').textContent = bizAddr;
+  const niceDate = date ? new Date(date).toLocaleDateString('en-GB') : '';
+  document.getElementById('pi-datecenter').textContent = niceDate;
+  document.getElementById('pi-date').textContent       = niceDate;
+  document.getElementById('pi-customer').textContent   = partyName;
+  document.getElementById('pi-address').textContent    = party.area || party.address || '';
+  document.getElementById('pi-phone').textContent      = party.phone || '';
+  document.getElementById('pi-pending').textContent    = document.getElementById('f-notes').value || '';
 
-/* ── UPDATE PRINT FOOTER ── */
-function updatePrintFooter() {
-  const fv  = id => parseFloat(document.getElementById(id)?.value)||0;
-  const subtotal = (() => { let s=0; document.querySelectorAll('.oi-total').forEach(el=>s+=parseFloat(el.value)||0); return s; })();
+  // Items
+  const tbody = document.getElementById('pi-items');
+  tbody.innerHTML = '';
+  let sl = 0;
+  document.querySelectorAll('.order-item-row').forEach(row => {
+    const ps    = row.querySelector('.oi-product');
+    const name  = ps.value ? (ps.options[ps.selectedIndex]?.dataset?.name || '') : '';
+    const code  = row.querySelector('.oi-code').value || '';
+    const qty   = parseFloat(row.querySelector('.oi-qty').value)||0;
+    const price = parseFloat(row.querySelector('.oi-price').value)||0;
+    const amt   = qty*price;
+    if (qty<=0 && !name) return;
+    sl++;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="c">'+sl+'</td>'+
+      '<td>'+name+'</td>'+
+      '<td class="c">'+code+'</td>'+
+      '<td class="r">'+qty+'</td>'+
+      '<td class="r">'+qty+'</td>'+
+      '<td class="r"></td>'+
+      '<td class="r">'+price.toFixed(1)+'</td>'+
+      '<td class="r">'+amt.toFixed(1)+'</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Totals
+  const fv = id => parseFloat(document.getElementById(id)?.value)||0;
+  let subtotal=0;
+  document.querySelectorAll('.oi-total').forEach(el=>subtotal+=parseFloat(el.value)||0);
   const discount = fv('f-discount');
   const grand    = Math.max(0, subtotal-discount);
   const prevDue  = getPrevDue();
   const cash     = fv('f-cash');
   const bank     = fv('f-bank');
   const mobile   = fv('f-mobile');
-  const salary   = fv('f-salary');
-  const ta       = fv('f-ta');
-  const da       = fv('f-da');
-  const others   = fv('f-others');
-  const totalDeduc = salary+ta+da+others;
-  const totalPaid  = cash+bank+mobile+totalDeduc;
-  const balance    = (grand+prevDue)-totalPaid;
+  const salaryGrp= fv('f-salary')+fv('f-ta')+fv('f-da')+fv('f-others');
+  const deposit  = salaryGrp+bank+cash+mobile;
+  const balance  = (grand+prevDue)-deposit;
 
-  // Row 1 left: non-zero deductions only
-  const dedParts = [];
-  if (salary) dedParts.push(`বেতন: ${fmt.currency(salary)}`);
-  if (ta)     dedParts.push(`TA: ${fmt.currency(ta)}`);
-  if (da)     dedParts.push(`DA: ${fmt.currency(da)}`);
-  if (others) dedParts.push(`অন্যান্য: ${fmt.currency(others)}`);
-  document.getElementById('pf-deductions').textContent = dedParts.join('  |  ');
-  document.getElementById('pf-subtotal').textContent   = `সাবটোটাল: ${fmt.currency(subtotal)}`;
-
-  // Row 2 left: non-zero payments only
-  const payParts = [];
-  if (cash)   payParts.push(`নগদ: ${fmt.currency(cash)}`);
-  if (bank)   payParts.push(`ব্যাংক: ${fmt.currency(bank)}`);
-  if (mobile) payParts.push(`মোবাইল: ${fmt.currency(mobile)}`);
-  document.getElementById('pf-payments').textContent = payParts.join('  |  ');
-  document.getElementById('pf-discount').textContent = discount ? `ছাড়: ${fmt.currency(discount)}` : '';
-
-  // Row 3: four key figures
-  document.getElementById('pf-grand').textContent    = `এই অর্ডার মোট: ${fmt.currency(grand)}`;
-  document.getElementById('pf-prevdue').textContent  = `পূর্ববর্তী বাকি: ${fmt.currency(prevDue)}`;
-  document.getElementById('pf-totalpaid').textContent = `মোট জমা + কর্তন: ${fmt.currency(totalPaid)}`;
-  document.getElementById('pf-balance').textContent  = `অবশিষ্ট বাকি: ${fmt.currency(balance)}`;
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('pi-salary',  salaryGrp.toFixed(1));
+  set('pi-bank',    bank.toFixed(1));
+  set('pi-cash',    (cash+mobile).toFixed(1));
+  set('pi-total',   grand.toFixed(1));
+  set('pi-deposit', deposit.toFixed(1));
+  set('pi-prevdue', prevDue.toFixed(1));
+  set('pi-balance', balance.toFixed(1));
 }
 
 /* ── COLLECT FORM DATA ── */
@@ -642,13 +602,14 @@ function collectFormData() {
   const items   = [];
   document.querySelectorAll('.order-item-row').forEach(row => {
     const ps   = row.querySelector('.oi-product');
+    const code = row.querySelector('.oi-code').value;
     const qty  = parseFloat(row.querySelector('.oi-qty').value)||0;
     const price= parseFloat(row.querySelector('.oi-price').value)||0;
     const tot  = parseFloat(row.querySelector('.oi-total').value)||0;
     if (qty>0) items.push({
       productId:   ps.value,
-      productName: ps.value ? (ps.options[ps.selectedIndex]?.dataset?.name || ps.options[ps.selectedIndex]?.text?.replace(/^\[.*?\]\s*/,'') || '') : '',
-      qty, price, total: tot
+      productName: ps.value ? (ps.options[ps.selectedIndex]?.dataset?.name || '') : '',
+      code, qty, price, total: tot
     });
   });
   const subtotal  = items.reduce((s,i)=>s+i.total,0);
@@ -745,9 +706,9 @@ function populateForm(o) {
   document.getElementById('pay-mobile').checked = (o.paymentMode||'').includes('মোবাইল');
   populatePartyDropdown(o.partyId);
   setPrevDue(o.prevDue||0);
-  JSON.parse(o.items||'[]').forEach(it => addOrderItem(it.productName, it.qty, it.price, it.productId));
+  JSON.parse(o.items||'[]').forEach(it => addOrderItem(it.productName, it.code, it.qty, it.price, it.productId));
   recalc();
-  updatePrintHeader();
+  buildPrintInvoice();
 }
 
 function resetForm() {
@@ -818,7 +779,7 @@ function viewOrder(id) {
   document.getElementById('btn-save-order-2').style.display = 'none';
 }
 function editOrder(id)  { const o=orders.find(x=>x.orderId===id); if(!o) return; currentType=o.orderType; showForm(id); }
-function printOrder(id) { const o=orders.find(x=>x.orderId===id); if(!o) return; currentType=o.orderType; showForm(id); setTimeout(()=>window.print(),600); }
+function printOrder(id) { const o=orders.find(x=>x.orderId===id); if(!o) return; currentType=o.orderType; showForm(id); setTimeout(()=>{buildPrintInvoice();window.print();},600); }
 function deleteOrder(id){
   if (!window.confirm(`"${id}" মুছে দেবেন?`)) return;
   orders=orders.filter(o=>o.orderId!==id);
@@ -844,12 +805,13 @@ document.getElementById('btn-back-list').addEventListener('click',   showList);
 document.getElementById('btn-back-list-2').addEventListener('click', showList);
 document.getElementById('btn-save-order').addEventListener('click',  saveOrder);
 document.getElementById('btn-save-order-2').addEventListener('click',saveOrder);
-document.getElementById('btn-print-order').addEventListener('click',  ()=>{ updatePrintHeader(); updatePrintFooter(); window.print(); });
-document.getElementById('btn-print-order-2').addEventListener('click',()=>{ updatePrintHeader(); updatePrintFooter(); window.print(); });
+document.getElementById('btn-print-order').addEventListener('click',  ()=>{ buildPrintInvoice(); window.print(); });
+document.getElementById('btn-print-order-2').addEventListener('click',()=>{ buildPrintInvoice(); window.print(); });
 document.getElementById('btn-add-item').addEventListener('click', ()=>addOrderItem());
 document.getElementById('btn-export-list').addEventListener('click', exportOrders);
 document.getElementById('f-party').addEventListener('change', onPartyChange);
-document.getElementById('f-date').addEventListener('change', updatePrintHeader);
+document.getElementById('f-date').addEventListener('change', buildPrintInvoice);
+document.getElementById('f-notes').addEventListener('input', buildPrintInvoice);
 ['f-discount','f-cash','f-bank','f-mobile','f-salary','f-ta','f-da','f-others']
   .forEach(id => document.getElementById(id).addEventListener('input', recalc));
 ['list-search','list-date-from','list-date-to','list-status'].forEach(id => {
