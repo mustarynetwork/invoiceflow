@@ -21,7 +21,7 @@ const LAYOUT_CSS = `
   /* ── SIDEBAR ── */
   .bf-nav { width:var(--nav-w); flex-shrink:0; background:var(--ink); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; transition:transform .25s; overflow-y:auto; }
   .bf-nav-logo { padding:20px 20px 16px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:10px; }
-  .bf-nav-logo-icon { width:36px; height:36px; border-radius:9px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .bf-nav-logo-icon { width:36px; height:36px; border-radius:9px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:18px; }
   .bf-nav-logo-text { font-family:'Syne',sans-serif; font-size:17px; font-weight:800; color:#fff; letter-spacing:-.3px; }
   .bf-nav-logo-text span { color:#a5b4fc; }
   .bf-nav-section { padding:16px 12px 4px; font-size:10px; font-weight:700; letter-spacing:1.2px; color:rgba(255,255,255,.3); text-transform:uppercase; }
@@ -63,13 +63,13 @@ const LAYOUT_CSS = `
   @media(max-width:640px) { .form-grid,.form-grid-3 { grid-template-columns:1fr; } }
   .field { margin-bottom:0; }
   .field label { display:block; font-size:11px; font-weight:600; color:var(--ink2); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
-  .field input,.field select,.field textarea { width:100%; border:1.5px solid var(--border); border-radius:8px; padding:9px 12px; font-family:inherit; font-size:13px; color:var(--ink); background:var(--surface); outline:none; transition:border-color .2s,box-shadow .2s; }
+  .field input,.field select,.field textarea { width:100%; border:1.5px solid var(--border); border-radius:8px; padding:9px 12px; font-family:inherit; font-size:13px; color:var(--ink); background:var(--bg); outline:none; transition:border-color .2s,box-shadow .2s; }
   .field input:focus,.field select:focus,.field textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(79,70,229,.08); background:#fff; }
   .field textarea { resize:vertical; min-height:72px; }
   .field-full { grid-column:1/-1; }
 
   /* ── BUTTONS ── */
-  .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:8px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .15s; text-decoration:none; }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:8px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .15s; }
   .btn:active { transform:scale(.97); }
   .btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
   .btn-primary { background:var(--accent); color:#fff; }
