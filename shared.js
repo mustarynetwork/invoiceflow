@@ -12,8 +12,9 @@ const BF = {
   // Super admin can still override it in Settings if redeployed.
   sheetUrl: localStorage.getItem('bf_sheet_url') || 'https://script.google.com/macros/s/AKfycbwzmTsoJA0lhEeBd4md7BrRnAwb01PV8Xj0nJl_3SzHTGKNZOhE-BIfDPQ1pd2PgPiECg/exec',
   roles: {
-    super: localStorage.getItem('bf_pw_super') || 'super123',
-    admin: localStorage.getItem('bf_pw_admin') || 'admin123',
+    super:  localStorage.getItem('bf_pw_super')  || 'super123',
+    admin:  localStorage.getItem('bf_pw_admin')  || 'admin123',
+    viewer: localStorage.getItem('bf_pw_viewer') || 'view123',
   },
   session: JSON.parse(sessionStorage.getItem('bf_session') || 'null'),
 };
@@ -35,6 +36,12 @@ const Auth = {
       BF.session = s;
       return 'admin';
     }
+    if (password === BF.roles.viewer) {
+      const s = { role: 'viewer', loginTime: Date.now() };
+      sessionStorage.setItem('bf_session', JSON.stringify(s));
+      BF.session = s;
+      return 'viewer';
+    }
     return null;
   },
   logout() {
@@ -49,7 +56,8 @@ const Auth = {
     }
     return true;
   },
-  isSuper() { return BF.session && BF.session.role === 'super'; },
+  isSuper()  { return BF.session && BF.session.role === 'super'; },
+  isViewer() { return BF.session && BF.session.role === 'viewer'; },
 };
 
 /* ════════════════════════════════════════
@@ -125,6 +133,7 @@ const API = {
       if (config && !config.error) {
         if (config.pw_super) { localStorage.setItem('bf_pw_super', config.pw_super); BF.roles.super = config.pw_super; }
         if (config.pw_admin) { localStorage.setItem('bf_pw_admin', config.pw_admin); BF.roles.admin = config.pw_admin; }
+         if (config.pw_viewer) { localStorage.setItem('bf_pw_viewer', config.pw_viewer); BF.roles.viewer = config.pw_viewer; }
         if (config.biz_name)    localStorage.setItem('bf_biz_name',    config.biz_name);
         if (config.biz_phone)   localStorage.setItem('bf_biz_phone',   config.biz_phone);
         if (config.biz_address) localStorage.setItem('bf_biz_address', config.biz_address);
