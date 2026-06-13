@@ -515,8 +515,42 @@ function updateSticky(){
   document.getElementById('sb-balance').textContent=document.getElementById('f-balance').textContent;
 }
 
+/* Determine brand: supplier name if all items share one supplier, else BizFlow */
+function getInvoiceBrandName(){
+  const fallback = localStorage.getItem('bf_biz_name') || 'BizFlow';
+  // Build product → suppliers map from purchase orders
+  const allOrders = JSON.parse(localStorage.getItem('bf_orders')||'[]');
+  const prodSupplier = {};
+  allOrders.forEach(o=>{
+    if(o.orderType!=='purchase' || !o.partyName) return;
+    let items=[]; try{ items=JSON.parse(o.items||'[]'); }catch(e){}
+    items.forEach(it=>{
+      if(!it.productId) return;
+      (prodSupplier[it.productId] = prodSupplier[it.productId] || new Set()).add(o.partyName);
+    });
+  });
+  // Collect suppliers of the items currently on this invoice
+  const suppliersOnInvoice = new Set();
+  let hasItems = false;
+  document.querySelectorAll('.order-item-row').forEach(row=>{
+    const ps = row.querySelector('.oi-product');
+    const qty = parseFloat(row.dataset.qtyPieces)||0;
+    if(!ps.value || qty<=0) return;
+    hasItems = true;
+    const sup = prodSupplier[ps.value];
+    if(sup) sup.forEach(s=>suppliersOnInvoice.add(s));
+    else suppliersOnInvoice.add('__unknown__'); // product with no purchase history
+  });
+  // All items from exactly one known supplier → use that name; else fallback
+  if(hasItems && suppliersOnInvoice.size===1){
+    const only = [...suppliersOnInvoice][0];
+    if(only !== '__unknown__') return only;
+  }
+  return fallback;
+}
+
 function buildPrintInvoice(){
-  const bizName=localStorage.getItem('bf_biz_name')||'BizFlow';
+  const bizName = getInvoiceBrandName();
   const orderId=document.getElementById('f-order-id').value;
   const date=document.getElementById('f-date').value;
   const partySel=document.getElementById('f-party');
