@@ -357,6 +357,17 @@ function loadLedger(partyId) {
 }
 
 /* ── RENDER LEDGER TABLE ── */
+function fmtDMY(d){
+  // Show DD/MM/YY; leave non-date values (like the '—' opening row) untouched
+  if(!d || d==='—') return d || '—';
+  const dt = new Date(d);
+  if(isNaN(dt.getTime())) return d;
+  const dd = String(dt.getDate()).padStart(2,'0');
+  const mm = String(dt.getMonth()+1).padStart(2,'0');
+  const yy = String(dt.getFullYear()).slice(-2);
+  return dd+'/'+mm+'/'+yy;
+}
+
 function renderLedgerTable(entries) {
   const tbody = document.getElementById('ledger-body');
   if (!entries.length) {
@@ -372,7 +383,7 @@ function renderLedgerTable(entries) {
     const rowBg   = e.isOpening ? 'background:#fffbeb;' : e.type==='payment' ? 'background:#f0fdf4;' : '';
     const balClass = e.balance>0 ? 'balance-pos' : e.balance<0 ? 'balance-neg' : 'balance-zero';
     return `<tr style="${rowBg}">
-      <td style="font-size:12px;white-space:nowrap">${e.date}</td>
+      <td style="font-size:12px;white-space:nowrap">${fmtDMY(e.date)}</td>
       <td style="font-size:13px">${e.description}</td>
       <td style="text-align:right" class="${e.debit>0?'ledger-debit':''}">${e.debit>0?fmt.currency(e.debit):'—'}</td>
       <td style="text-align:right" class="${e.credit>0?'ledger-credit':''}">${e.credit>0?fmt.currency(e.credit):'—'}</td>
