@@ -91,10 +91,10 @@
           <div class="stat-sub">সব পার্টির বাকি</div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">🎁</div>
-          <div class="stat-label">ফ্রি স্টক (হাতে)</div>
-          <div class="stat-value" id="stat-free-stock" style="font-size:18px;color:var(--accent)">—</div>
-          <div class="stat-sub">ফ্রি ইন − ফ্রি আউট</div>
+          <div class="stat-icon">🏪</div>
+          <div class="stat-label">প্রকৃত স্টক (মোট)</div>
+          <div class="stat-value" id="stat-physical-stock" style="font-size:18px;color:var(--success)">—</div>
+          <div class="stat-sub">শেলফে মোট পণ্য</div>
         </div>
       </div>
 
@@ -190,18 +190,19 @@ function loadFromCache() {
   const totalPaid    = orders.reduce((s,o)   => s + parseFloat(o.totalPaid||0),  0);
   const totalDue     = orders.reduce((s,o)   => s + parseFloat(o.balance||0),    0);
 
-  // Free stock in hand = free pieces received (purchases) − free pieces given (sales)
-  let freeIn = 0, freeOut = 0;
+  // Physical stock (on shelf) = (qty in + free in) − (qty out + free out), in pieces
+  let physIn = 0, physOut = 0;
   orders.forEach(o => {
     let items = [];
     try { items = JSON.parse(o.items||'[]'); } catch(e) {}
     items.forEach(it => {
+      const qp = parseFloat(it.qtyPieces!==undefined?it.qtyPieces:it.qty)||0;
       const fp = parseFloat(it.freePieces)||0;
-      if (o.orderType === 'purchase') freeIn  += fp;
-      if (o.orderType === 'sales')    freeOut += fp;
+      if (o.orderType === 'purchase') physIn  += (qp + fp);
+      if (o.orderType === 'sales')    physOut += (qp + fp);
     });
   });
-  const freeBalance = freeIn - freeOut;
+  const physicalStock = physIn - physOut;
 
   document.getElementById('stat-parties').textContent   = parties.length;
   document.getElementById('stat-products').textContent  = products.filter(p=>p.status==='active').length;
@@ -211,7 +212,7 @@ function loadFromCache() {
   document.getElementById('stat-sales-due').textContent   = `বাকি: ${fmt.currency(sales.reduce((s,o)=>s+parseFloat(o.balance||0),0))}`;
   document.getElementById('stat-total-paid').textContent  = fmt.currency(totalPaid);
   document.getElementById('stat-total-due').textContent   = fmt.currency(totalDue);
-  document.getElementById('stat-free-stock').textContent  = freeBalance.toLocaleString() + ' pcs';
+  document.getElementById('stat-physical-stock').textContent = physicalStock.toLocaleString() + ' pcs';
 
   // Recent sales (last 5)
   renderRecentOrders(sales.slice(0,5),   'recent-sales');
