@@ -5,17 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>BizFlow — স্টক শিট</title>
   <style>
-    .stock-badge-ok  { background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
-    .stock-badge-low { background:#fef9c3; color:#854d0e; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
-    .stock-badge-out { background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
-    .progress-bar-wrap { background:#e2e8f0; border-radius:20px; height:6px; width:100px; overflow:hidden; }
-    .progress-bar-fill { height:100%; border-radius:20px; transition:width .3s; }
-    @media print {
-      .bf-nav, .bf-topbar, .no-print { display:none !important; }
-      .bf-main { margin-left:0 !important; }
-      .bf-body { padding:16px !important; }
-      .card { box-shadow:none !important; border:1px solid #ddd !important; }
-    }
+    .stock-badge-ok{background:#dcfce7;color:#15803d;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+    .stock-badge-low{background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+    .stock-badge-out{background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+    .free-cell{color:var(--accent);font-weight:600}
+    @media print{.bf-nav,.bf-topbar,.no-print{display:none!important}.bf-main{margin-left:0!important}.bf-body{padding:16px!important}.card{box-shadow:none!important;border:1px solid #ddd!important}}
   </style>
 </head>
 <body>
@@ -38,45 +32,23 @@
     <div class="bf-body">
 
       <!-- STATS -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card">
-          <div class="stat-icon">📦</div>
-          <div class="stat-label">মোট আইটেম</div>
-          <div class="stat-value" id="s-total">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">✅</div>
-          <div class="stat-label">স্টকে আছে</div>
-          <div class="stat-value" id="s-instock" style="color:var(--success)">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⚠️</div>
-          <div class="stat-label">কম স্টক</div>
-          <div class="stat-value" id="s-low" style="color:var(--warn)">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">❌</div>
-          <div class="stat-label">স্টক শেষ</div>
-          <div class="stat-value" id="s-out" style="color:var(--danger)">0</div>
-        </div>
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-label">মোট আইটেম</div><div class="stat-value" id="s-total">0</div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-label">স্টকে আছে</div><div class="stat-value" id="s-instock" style="color:var(--success)">0</div></div>
+        <div class="stat-card"><div class="stat-icon">⚠️</div><div class="stat-label">কম স্টক</div><div class="stat-value" id="s-low" style="color:var(--warn)">0</div></div>
+        <div class="stat-card"><div class="stat-icon">❌</div><div class="stat-label">স্টক শেষ</div><div class="stat-value" id="s-out" style="color:var(--danger)">0</div></div>
+        <div class="stat-card"><div class="stat-icon">🎁</div><div class="stat-label">ফ্রি স্টক (হাতে)</div><div class="stat-value" id="s-free" style="color:var(--accent);font-size:15px">0</div></div>
       </div>
 
-      <!-- FILTER BAR -->
       <div class="card no-print" style="padding:14px 20px">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-          <div class="search-bar" style="flex:1;min-width:200px">
-            <input type="text" id="search-input" placeholder="পণ্যের নাম বা কোড…"/>
-          </div>
+          <div class="search-bar" style="flex:1;min-width:200px"><input type="text" id="search-input" placeholder="পণ্যের নাম বা কোড…"/></div>
           <select id="filter-status" style="border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:13px;color:var(--ink);outline:none;background:#fff">
-            <option value="">সব স্ট্যাটাস</option>
-            <option value="ok">স্টকে আছে</option>
-            <option value="low">কম স্টক</option>
-            <option value="out">স্টক শেষ</option>
+            <option value="">সব স্ট্যাটাস</option><option value="ok">স্টকে আছে</option><option value="low">কম স্টক</option><option value="out">স্টক শেষ</option>
           </select>
         </div>
       </div>
 
-      <!-- STOCK TABLE -->
       <div class="card" style="padding:0;overflow:hidden">
         <div class="table-wrap">
           <table>
@@ -87,38 +59,40 @@
                 <th style="text-align:right">স্টক ইন</th>
                 <th style="text-align:right">স্টক আউট</th>
                 <th style="text-align:right">বর্তমান স্টক</th>
+                <th style="text-align:right;background:#eef2ff">ফ্রি ইন</th>
+                <th style="text-align:right;background:#eef2ff">ফ্রি আউট</th>
+                <th style="text-align:right;background:#eef2ff">ফ্রি ব্যালেন্স</th>
+                <th style="text-align:right;background:#ecfdf5">প্রকৃত স্টক (মোট)</th>
                 <th style="text-align:center">স্ট্যাটাস</th>
-                <th style="text-align:center">স্টক লেভেল</th>
-                <th>সর্বশেষ আপডেট</th>
               </tr>
             </thead>
-            <tbody id="stock-body">
-              <tr><td colspan="8"><div class="empty"><div class="empty-icon">🏭</div><p>লোড হচ্ছে…</p></div></td></tr>
-            </tbody>
+            <tbody id="stock-body"><tr><td colspan="10"><div class="empty"><div class="empty-icon">🏭</div><p>লোড হচ্ছে…</p></div></td></tr></tbody>
           </table>
         </div>
       </div>
 
-      <!-- STOCK MOVEMENT CARD -->
       <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">স্টক মুভমেন্ট সারসংক্ষেপ</div>
-            <div class="card-sub">ক্রয় = স্টক ইন, বিক্রয় = স্টক আউট</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="movement-grid">
+        <div class="card-header"><div><div class="card-title">স্টক মুভমেন্ট সারসংক্ষেপ</div><div class="card-sub">ক্রয় = স্টক ইন, বিক্রয় = স্টক আউট · ফ্রি আলাদা গণনা</div></div></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px" id="movement-grid">
           <div style="background:var(--bg);border-radius:10px;padding:16px;text-align:center">
             <div style="font-size:28px;margin-bottom:6px">📥</div>
             <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:4px">মোট স্টক ইন</div>
-            <div style="font-size:22px;font-weight:700;color:var(--success)" id="total-in">0</div>
-            <div style="font-size:11px;color:var(--ink3);margin-top:2px">মোট ক্রয় পরিমাণ</div>
+            <div style="font-size:18px;font-weight:700;color:var(--success)" id="total-in">0</div>
           </div>
           <div style="background:var(--bg);border-radius:10px;padding:16px;text-align:center">
             <div style="font-size:28px;margin-bottom:6px">📤</div>
             <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:4px">মোট স্টক আউট</div>
-            <div style="font-size:22px;font-weight:700;color:var(--danger)" id="total-out">0</div>
-            <div style="font-size:11px;color:var(--ink3);margin-top:2px">মোট বিক্রয় পরিমাণ</div>
+            <div style="font-size:18px;font-weight:700;color:var(--danger)" id="total-out">0</div>
+          </div>
+          <div style="background:#eef2ff;border-radius:10px;padding:16px;text-align:center">
+            <div style="font-size:28px;margin-bottom:6px">🎁</div>
+            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);margin-bottom:4px">ফ্রি ব্যালেন্স (হাতে)</div>
+            <div style="font-size:18px;font-weight:700;color:var(--accent)" id="total-free">0</div>
+          </div>
+          <div style="background:#f0fdf4;border-radius:10px;padding:16px;text-align:center">
+            <div style="font-size:28px;margin-bottom:6px">🏪</div>
+            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--success);margin-bottom:4px">প্রকৃত স্টক (শেলফে)</div>
+            <div style="font-size:18px;font-weight:700;color:var(--success)" id="total-physical">0</div>
           </div>
         </div>
       </div>
@@ -132,194 +106,143 @@
 <script>
 buildNav('stock');
 
-/* ── STATE ── */
-// Build stock from local orders + products
-let stockData = [];
+let stockData=[];
 
-/* ── BUILD STOCK FROM LOCAL ORDERS ── */
-function buildStockFromOrders() {
-  const orders   = JSON.parse(localStorage.getItem('bf_orders')   || '[]');
-  const products = JSON.parse(localStorage.getItem('bf_products') || '[]');
+/* helper: pieces → "X ctn + Y pcs" */
+function pcsDisp(pieces, cartonSize){
+  pieces = Math.round(pieces);
+  if(cartonSize>0){
+    const sign = pieces<0?'-':'';
+    const abs = Math.abs(pieces);
+    const c = Math.floor(abs/cartonSize), p = abs%cartonSize;
+    if(c>0 && p>0) return sign+c+' ctn + '+p+' pcs';
+    if(c>0) return sign+c+' ctn';
+    return sign+p+' pcs';
+  }
+  return pieces+' pcs';
+}
 
-  // Map: productId → { name, code, stockIn, stockOut }
-  const map = {};
-
-  // Initialize all products
-  products.forEach(p => {
-    map[p.id] = {
-      productId:   p.id,
-      productCode: p.code || '',
-      productName: p.name,
-      stockIn:     0,
-      stockOut:    0,
-      lastUpdated: '',
-    };
+function buildStockFromOrders(){
+  const orders=JSON.parse(localStorage.getItem('bf_orders')||'[]');
+  const products=JSON.parse(localStorage.getItem('bf_products')||'[]');
+  const map={};
+  products.forEach(p=>{
+    map[p.id]={productId:p.id,productCode:p.code||'',productName:p.name,cartonSize:parseFloat(p.cartonSize)||0,
+      stockIn:0,stockOut:0,freeIn:0,freeOut:0,lastUpdated:''};
   });
-
-  // Process orders
-  orders.forEach(o => {
-    let items = [];
-    try { items = JSON.parse(o.items || '[]'); } catch(e) {}
-    items.forEach(item => {
-      if (!item.productId) return;
-      if (!map[item.productId]) {
-        map[item.productId] = {
-          productId:   item.productId,
-          productCode: '',
-          productName: item.productName || item.productId,
-          stockIn:     0,
-          stockOut:    0,
-          lastUpdated: o.date || '',
-        };
+  orders.forEach(o=>{
+    let items=[];try{items=JSON.parse(o.items||'[]');}catch(e){}
+    items.forEach(item=>{
+      if(!item.productId)return;
+      if(!map[item.productId]){
+        map[item.productId]={productId:item.productId,productCode:item.code||'',productName:item.productName||item.productId,cartonSize:parseFloat(item.cartonSize)||0,stockIn:0,stockOut:0,freeIn:0,freeOut:0,lastUpdated:o.date||''};
       }
-      const qty = parseFloat(item.qty) || 0;
-      if (o.orderType === 'purchase') map[item.productId].stockIn  += qty;
-      if (o.orderType === 'sales')    map[item.productId].stockOut += qty;
-      if (o.date > (map[item.productId].lastUpdated || '')) {
-        map[item.productId].lastUpdated = o.date;
-      }
+      const rec=map[item.productId];
+      // qtyPieces and freePieces come from carton system; fallback to qty
+      const qtyP=parseFloat(item.qtyPieces!==undefined?item.qtyPieces:item.qty)||0;
+      const freeP=parseFloat(item.freePieces)||0;
+      if(item.cartonSize && !rec.cartonSize) rec.cartonSize=parseFloat(item.cartonSize)||0;
+      if(o.orderType==='purchase'){rec.stockIn+=qtyP;rec.freeIn+=freeP;}
+      if(o.orderType==='sales'){rec.stockOut+=qtyP;rec.freeOut+=freeP;}
+      if(o.date>(rec.lastUpdated||'')) rec.lastUpdated=o.date;
     });
   });
-
-  return Object.values(map).filter(r => r.stockIn > 0 || r.stockOut > 0 || true);
+  return Object.values(map);
 }
 
-/* ── STATS ── */
-function updateStats(list) {
-  const withBalance = list.filter(r => r.stockIn > 0 || r.stockOut > 0);
-  const inStock  = withBalance.filter(r => (r.stockIn - r.stockOut) > 5);
-  const low      = withBalance.filter(r => (r.stockIn - r.stockOut) > 0 && (r.stockIn - r.stockOut) <= 5);
-  const out      = withBalance.filter(r => (r.stockIn - r.stockOut) <= 0);
-  const totalIn  = list.reduce((s,r) => s + r.stockIn,  0);
-  const totalOut = list.reduce((s,r) => s + r.stockOut, 0);
-
-  document.getElementById('s-total').textContent   = withBalance.length;
-  document.getElementById('s-instock').textContent = inStock.length;
-  document.getElementById('s-low').textContent     = low.length;
-  document.getElementById('s-out').textContent     = out.length;
-  document.getElementById('total-in').textContent  = totalIn.toLocaleString();
-  document.getElementById('total-out').textContent = totalOut.toLocaleString();
+function updateStats(list){
+  const withMovement=list.filter(r=>r.stockIn>0||r.stockOut>0||r.freeIn>0||r.freeOut>0);
+  const inStock=withMovement.filter(r=>(r.stockIn-r.stockOut)>5);
+  const low=withMovement.filter(r=>{const b=r.stockIn-r.stockOut;return b>0&&b<=5;});
+  const out=withMovement.filter(r=>(r.stockIn-r.stockOut)<=0);
+  const totalIn=list.reduce((s,r)=>s+r.stockIn,0);
+  const totalOut=list.reduce((s,r)=>s+r.stockOut,0);
+  const totalFreeBal=list.reduce((s,r)=>s+(r.freeIn-r.freeOut),0);
+  document.getElementById('s-total').textContent=withMovement.length;
+  document.getElementById('s-instock').textContent=inStock.length;
+  document.getElementById('s-low').textContent=low.length;
+  document.getElementById('s-out').textContent=out.length;
+  document.getElementById('s-free').textContent=totalFreeBal+' pcs';
+  document.getElementById('total-in').textContent=totalIn.toLocaleString()+' pcs';
+  document.getElementById('total-out').textContent=totalOut.toLocaleString()+' pcs';
+  document.getElementById('total-free').textContent=totalFreeBal.toLocaleString()+' pcs';
+  const totalPhysical=(totalIn+list.reduce((s,r)=>s+r.freeIn,0))-(totalOut+list.reduce((s,r)=>s+r.freeOut,0));
+  document.getElementById('total-physical').textContent=totalPhysical.toLocaleString()+' pcs';
 }
 
-/* ── RENDER TABLE ── */
-function renderTable(list) {
-  const tbody = document.getElementById('stock-body');
+function applyFilterLogic(list){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  const st=document.getElementById('filter-status').value;
+  return list.filter(r=>{
+    const bal=r.stockIn-r.stockOut;
+    const mQ=!q||r.productName.toLowerCase().includes(q)||(r.productCode||'').toLowerCase().includes(q);
+    const mSt=!st||(st==='ok'&&bal>5)||(st==='low'&&bal>0&&bal<=5)||(st==='out'&&bal<=0);
+    return mQ&&mSt;
+  });
+}
 
-  const filtered = applyFilterLogic(list);
-
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty">
-      <div class="empty-icon">🏭</div>
-      <p>কোনো স্টক ডেটা নেই।<br/>ক্রয় বা বিক্রয় অর্ডার সেভ করলে এখানে দেখাবে।</p>
-    </div></td></tr>`;
-    return;
-  }
-
-  // Sort by balance descending
-  const sorted = [...filtered].sort((a,b) => (b.stockIn-b.stockOut) - (a.stockIn-a.stockOut));
-
-  tbody.innerHTML = sorted.map((r, i) => {
-    const balance = r.stockIn - r.stockOut;
-    const maxIn   = Math.max(r.stockIn, 1);
-    const pct     = Math.min(100, Math.round((balance / maxIn) * 100));
-
-    let statusEl, barColor;
-    if (balance <= 0)      { statusEl = `<span class="stock-badge-out">স্টক শেষ</span>`; barColor = '#dc2626'; }
-    else if (balance <= 5) { statusEl = `<span class="stock-badge-low">কম স্টক</span>`;  barColor = '#d97706'; }
-    else                   { statusEl = `<span class="stock-badge-ok">স্টকে আছে</span>`; barColor = '#059669'; }
-
+function renderTable(list){
+  const tbody=document.getElementById('stock-body');
+  const filtered=applyFilterLogic(list);
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="empty-icon">🏭</div><p>কোনো স্টক ডেটা নেই।<br/>ক্রয় বা বিক্রয় অর্ডার সেভ করলে এখানে দেখাবে।</p></div></td></tr>`;return;}
+  const sorted=[...filtered].sort((a,b)=>(b.stockIn-b.stockOut)-(a.stockIn-a.stockOut));
+  tbody.innerHTML=sorted.map((r,i)=>{
+    const balance=r.stockIn-r.stockOut;
+    const freeBal=r.freeIn-r.freeOut;
+    const physical=(r.stockIn+r.freeIn)-(r.stockOut+r.freeOut);
+    const cs=r.cartonSize;
+    let statusEl;
+    if(balance<=0)statusEl=`<span class="stock-badge-out">স্টক শেষ</span>`;
+    else if(balance<=5)statusEl=`<span class="stock-badge-low">কম স্টক</span>`;
+    else statusEl=`<span class="stock-badge-ok">স্টকে আছে</span>`;
     return `<tr>
       <td style="color:var(--ink3);font-size:12px">${i+1}</td>
-      <td>
-        <strong>${r.productName}</strong>
-        ${r.productCode ? `<br><code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--accent)">${r.productCode}</code>` : ''}
-      </td>
-      <td style="text-align:right;color:var(--success);font-weight:600">${r.stockIn.toLocaleString()}</td>
-      <td style="text-align:right;color:var(--danger);font-weight:600">${r.stockOut.toLocaleString()}</td>
-      <td style="text-align:right;font-size:16px;font-weight:700;color:${balance<=0?'var(--danger)':balance<=5?'var(--warn)':'var(--ink)'}">${balance.toLocaleString()}</td>
+      <td><strong>${r.productName}</strong>${r.productCode?`<br><code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--accent)">${r.productCode}</code>`:''}</td>
+      <td style="text-align:right;color:var(--success);font-weight:600">${pcsDisp(r.stockIn,cs)}</td>
+      <td style="text-align:right;color:var(--danger);font-weight:600">${pcsDisp(r.stockOut,cs)}</td>
+      <td style="text-align:right;font-weight:700;color:${balance<=0?'var(--danger)':balance<=5?'var(--warn)':'var(--ink)'}">${pcsDisp(balance,cs)}</td>
+      <td style="text-align:right;background:#f5f7ff" class="free-cell">${pcsDisp(r.freeIn,cs)}</td>
+      <td style="text-align:right;background:#f5f7ff" class="free-cell">${pcsDisp(r.freeOut,cs)}</td>
+      <td style="text-align:right;background:#f5f7ff;font-weight:700;color:${freeBal<0?'var(--danger)':'var(--accent)'}">${pcsDisp(freeBal,cs)}</td>
+      <td style="text-align:right;background:#f0fdf4;font-weight:700;color:${physical<=0?'var(--danger)':'var(--success)'}">${pcsDisp(physical,cs)}</td>
       <td style="text-align:center">${statusEl}</td>
-      <td style="text-align:center">
-        <div style="display:flex;align-items:center;gap:6px;justify-content:center">
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" style="width:${pct}%;background:${barColor}"></div>
-          </div>
-          <span style="font-size:11px;color:var(--ink3);width:32px">${pct}%</span>
-        </div>
-      </td>
-      <td style="font-size:12px;color:var(--ink3)">${r.lastUpdated || '—'}</td>
     </tr>`;
   }).join('');
 }
 
-function applyFilterLogic(list) {
-  const q  = document.getElementById('search-input').value.toLowerCase();
-  const st = document.getElementById('filter-status').value;
-  return list.filter(r => {
-    const bal = r.stockIn - r.stockOut;
-    const mQ  = !q  || r.productName.toLowerCase().includes(q) || (r.productCode||'').toLowerCase().includes(q);
-    const mSt = !st ||
-      (st==='ok'  && bal > 5) ||
-      (st==='low' && bal > 0 && bal <= 5) ||
-      (st==='out' && bal <= 0);
-    return mQ && mSt;
+function refresh(){stockData=buildStockFromOrders();renderTable(stockData);updateStats(stockData);}
+
+async function syncFromSheet(){
+  if(!BF.sheetUrl){toast('Settings-এ Sheet URL দিন','error');return;}
+  const btn=document.getElementById('btn-sync');spinBtn(btn,true);
+  try{
+    const orders=await API.fetch('getOrders');
+    if(Array.isArray(orders))localStorage.setItem('bf_orders',JSON.stringify(orders));
+    const products=await API.fetch('getProducts');
+    if(Array.isArray(products))localStorage.setItem('bf_products',JSON.stringify(products.map(p=>({...p,hasOffer:p.hasOffer==='true'||p.hasOffer===true}))));
+    refresh();toast('স্টক আপডেট হয়েছে ✓','success');
+  }catch(e){toast('লোড ব্যর্থ: '+e.message,'error');}
+  spinBtn(btn,false);
+}
+
+function exportCSV(){
+  if(!stockData.length){toast('কোনো ডেটা নেই','error');return;}
+  const h=['পণ্যের নাম','কোড','স্টক ইন','স্টক আউট','বর্তমান স্টক','ফ্রি ইন','ফ্রি আউট','ফ্রি ব্যালেন্স','প্রকৃত স্টক (মোট)','কার্টন সাইজ'];
+  const rows=stockData.map(r=>{
+    const bal=r.stockIn-r.stockOut,fb=r.freeIn-r.freeOut;
+    const phys=(r.stockIn+r.freeIn)-(r.stockOut+r.freeOut);
+    return [r.productName,r.productCode,r.stockIn,r.stockOut,bal,r.freeIn,r.freeOut,fb,phys,r.cartonSize].map(v=>`"${v||0}"`).join(',');
   });
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('\uFEFF'+[h.join(','),...rows].join('\n'));a.download='stock_'+fmt.dateInput()+'.csv';a.click();
 }
 
-function refresh() {
-  stockData = buildStockFromOrders();
-  renderTable(stockData);
-  updateStats(stockData);
-}
+document.getElementById('btn-sync').addEventListener('click',syncFromSheet);
+document.getElementById('btn-export').addEventListener('click',exportCSV);
+document.getElementById('search-input').addEventListener('input',()=>renderTable(stockData));
+document.getElementById('filter-status').addEventListener('change',()=>renderTable(stockData));
 
-/* ── SYNC FROM SHEET ── */
-async function syncFromSheet() {
-  if (!BF.sheetUrl) { toast('Settings-এ Sheet URL দিন','error'); return; }
-  const btn = document.getElementById('btn-sync');
-  spinBtn(btn, true);
-  try {
-    // Sync orders first, then rebuild stock
-    const orders = await API.fetch('getOrders');
-    if (Array.isArray(orders)) {
-      localStorage.setItem('bf_orders', JSON.stringify(orders));
-    }
-    const products = await API.fetch('getProducts');
-    if (Array.isArray(products)) {
-      localStorage.setItem('bf_products', JSON.stringify(
-        products.map(p=>({...p, hasOffer:p.hasOffer==='true'||p.hasOffer===true}))
-      ));
-    }
-    refresh();
-    toast('স্টক আপডেট হয়েছে ✓','success');
-  } catch(e) {
-    toast('লোড ব্যর্থ: ' + e.message,'error');
-  }
-  spinBtn(btn, false);
-}
-
-/* ── EXPORT CSV ── */
-function exportCSV() {
-  if (!stockData.length) { toast('কোনো ডেটা নেই','error'); return; }
-  const h = ['পণ্যের নাম','কোড','স্টক ইন','স্টক আউট','বর্তমান স্টক','স্ট্যাটাস','সর্বশেষ আপডেট'];
-  const rows = stockData.map(r => {
-    const bal = r.stockIn - r.stockOut;
-    const st  = bal<=0 ? 'স্টক শেষ' : bal<=5 ? 'কম স্টক' : 'স্টকে আছে';
-    return [r.productName, r.productCode, r.stockIn, r.stockOut, bal, st, r.lastUpdated]
-      .map(v=>`"${v||''}"`).join(',');
-  });
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent('\uFEFF'+[h.join(','),...rows].join('\n'));
-  a.download = 'stock_'+fmt.dateInput()+'.csv'; a.click();
-}
-
-/* ── EVENTS ── */
-document.getElementById('btn-sync').addEventListener('click',  syncFromSheet);
-document.getElementById('btn-export').addEventListener('click', exportCSV);
-document.getElementById('search-input').addEventListener('input',  () => renderTable(stockData));
-document.getElementById('filter-status').addEventListener('change',() => renderTable(stockData));
-
-/* ── INIT ── */
 refresh();
-if (BF.sheetUrl) syncFromSheet();
+if(BF.sheetUrl)syncFromSheet();
 </script>
 </body>
 </html>
