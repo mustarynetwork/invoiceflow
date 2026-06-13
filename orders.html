@@ -193,6 +193,7 @@
           <table class="pi-table">
             <thead><tr><th class="c" style="width:28px">SL.</th><th>ITEMS</th><th class="c" style="width:50px">CODE</th><th class="c" style="width:70px">TOTAL QTY</th><th class="c" style="width:55px">QTY</th><th class="c" style="width:50px">FREE</th><th class="c" style="width:60px">PRICE</th><th class="c" style="width:70px">AMOUNT</th></tr></thead>
             <tbody id="pi-items"></tbody>
+            <tfoot><tr style="font-weight:bold"><td class="c" colspan="3" style="text-align:right">মোট পরিমাণ:</td><td class="r" id="pi-total-qty"></td><td colspan="4"></td></tr></tfoot>
           </table>
           <div class="pi-bottom">
             <div class="pi-bleft">
@@ -227,6 +228,7 @@
         <div class="sticky-bar no-print" id="sticky-bar">
           <div class="sticky-info">
             <div class="si"><span class="k">পার্টি</span><span class="v" id="sb-party">—</span></div>
+            <div class="si"><span class="k">মোট পরিমাণ</span><span class="v" id="sb-qty" style="color:var(--accent)">0</span></div>
             <div class="si"><span class="k">অর্ডার মোট</span><span class="v" id="sb-total">৳0.00</span></div>
             <div class="si"><span class="k">অবশিষ্ট বাকি</span><span class="v due" id="sb-balance">৳0.00</span></div>
           </div>
@@ -399,7 +401,13 @@ function onPartyChange(){
   if(!party){document.getElementById('f-party-address').value='';setPrevDue(0);buildPrintInvoice();updateSticky();return;}
   document.getElementById('f-party-address').value=[party.address,party.area,party.phone].filter(Boolean).join(' | ');
   const partyOrders=orders.filter(o=>o.partyId===partyId && o.orderId!==editOrderId);
-  const prevDue=partyOrders.reduce((s,o)=>s+parseFloat(o.balance||0),parseFloat(party.balance||0));
+  // Previous due = opening balance + total billed − total paid (across past orders).
+  // NOT the sum of each order's `balance`, since each balance already carries forward
+  // the prior due, which would double-count.
+  const opening=parseFloat(party.balance||party.openingBalance||0)||0;
+  const billed=partyOrders.reduce((s,o)=>s+parseFloat(o.grandTotal||0),0);
+  const paid=partyOrders.reduce((s,o)=>s+parseFloat(o.totalPaid||0),0);
+  const prevDue=opening+billed-paid;
   setPrevDue(prevDue); buildPrintInvoice(); updateSticky();
 }
 
@@ -507,50 +515,34 @@ function recalc(){
   buildPrintInvoice();
 }
 
+/* Grand total physical quantity (qty+free) across all items, summed as ctn + pcs */
+function computeTotalQtyDisp(){
+  let totalCtn=0, totalPcs=0, anyNoCarton=0;
+  document.querySelectorAll('.order-item-row').forEach(row=>{
+    const totalPieces=parseFloat(row.dataset.totalPieces)||0;
+    const cSize=parseFloat(row.dataset.cSize)||0;
+    if(totalPieces<=0) return;
+    if(cSize>0){ totalCtn+=Math.floor(totalPieces/cSize); totalPcs+=totalPieces%cSize; }
+    else { anyNoCarton+=totalPieces; }
+  });
+  let parts=[];
+  if(totalCtn>0) parts.push(totalCtn+' ctn');
+  if(totalPcs>0) parts.push(totalPcs+' pcs');
+  if(anyNoCarton>0) parts.push(anyNoCarton+' pcs');
+  return parts.length?parts.join(' + '):'0';
+}
+
 function updateSticky(){
   const partySel=document.getElementById('f-party');
   const party=parties.find(p=>p.id===partySel.value);
   document.getElementById('sb-party').textContent=party?party.name:'—';
+  document.getElementById('sb-qty').textContent=computeTotalQtyDisp();
   document.getElementById('sb-total').textContent=document.getElementById('f-grand-total').textContent;
   document.getElementById('sb-balance').textContent=document.getElementById('f-balance').textContent;
 }
 
-/* Determine brand: supplier name if all items share one supplier, else BizFlow */
-function getInvoiceBrandName(){
-  const fallback = localStorage.getItem('bf_biz_name') || 'BizFlow';
-  // Build product → suppliers map from purchase orders
-  const allOrders = JSON.parse(localStorage.getItem('bf_orders')||'[]');
-  const prodSupplier = {};
-  allOrders.forEach(o=>{
-    if(o.orderType!=='purchase' || !o.partyName) return;
-    let items=[]; try{ items=JSON.parse(o.items||'[]'); }catch(e){}
-    items.forEach(it=>{
-      if(!it.productId) return;
-      (prodSupplier[it.productId] = prodSupplier[it.productId] || new Set()).add(o.partyName);
-    });
-  });
-  // Collect suppliers of the items currently on this invoice
-  const suppliersOnInvoice = new Set();
-  let hasItems = false;
-  document.querySelectorAll('.order-item-row').forEach(row=>{
-    const ps = row.querySelector('.oi-product');
-    const qty = parseFloat(row.dataset.qtyPieces)||0;
-    if(!ps.value || qty<=0) return;
-    hasItems = true;
-    const sup = prodSupplier[ps.value];
-    if(sup) sup.forEach(s=>suppliersOnInvoice.add(s));
-    else suppliersOnInvoice.add('__unknown__'); // product with no purchase history
-  });
-  // All items from exactly one known supplier → use that name; else fallback
-  if(hasItems && suppliersOnInvoice.size===1){
-    const only = [...suppliersOnInvoice][0];
-    if(only !== '__unknown__') return only;
-  }
-  return fallback;
-}
-
 function buildPrintInvoice(){
-  const bizName = getInvoiceBrandName();
+  const bizName=localStorage.getItem('bf_biz_name')||'BizFlow';
   const orderId=document.getElementById('f-order-id').value;
   const date=document.getElementById('f-date').value;
   const partySel=document.getElementById('f-party');
@@ -592,6 +584,8 @@ function buildPrintInvoice(){
     tr.innerHTML='<td class="c">'+sl+'</td><td>'+name+'</td><td class="c">'+code+'</td><td class="r">'+totalDisp+'</td><td class="r">'+qtyDisp+'</td><td class="r">'+freeDisp+'</td><td class="r">'+priceDisp+'</td><td class="r">'+amt.toFixed(1)+'</td>';
     tbody.appendChild(tr);
   });
+  const totalQtyEl=document.getElementById('pi-total-qty');
+  if(totalQtyEl) totalQtyEl.textContent=computeTotalQtyDisp();
   const fv=id=>parseFloat(document.getElementById(id)?.value)||0;
   let subtotal=0;document.querySelectorAll('.oi-total').forEach(el=>subtotal+=parseFloat(el.value)||0);
   const discount=fv('f-discount'),grand=Math.max(0,subtotal-discount),prevDue=getPrevDue();
@@ -655,8 +649,13 @@ async function saveOrder(){
 }
 
 function updatePartyBalance(partyId){
+  const party=parties.find(p=>p.id===partyId)||{};
   const partyOrders=orders.filter(o=>o.partyId===partyId);
-  const balance=partyOrders.reduce((s,o)=>s+parseFloat(o.balance||0),0);
+  // currentBalance = opening + total billed − total paid (no carried-forward double-count)
+  const opening=parseFloat(party.balance||party.openingBalance||0)||0;
+  const billed=partyOrders.reduce((s,o)=>s+parseFloat(o.grandTotal||0),0);
+  const paid=partyOrders.reduce((s,o)=>s+parseFloat(o.totalPaid||0),0);
+  const balance=opening+billed-paid;
   const idx=parties.findIndex(p=>p.id===partyId);
   if(idx>-1){parties[idx].currentBalance=balance;localStorage.setItem('bf_parties',JSON.stringify(parties));}
 }
