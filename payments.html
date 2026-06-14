@@ -454,6 +454,16 @@ document.getElementById('f-party').addEventListener('change',onPartyChange);
 ['list-search','list-type','list-from','list-to'].forEach(id=>{document.getElementById(id).addEventListener('input',renderList);document.getElementById(id).addEventListener('change',renderList);});
 
 renderList();updateStats();
+
+/* Sync fresh data from Sheet on load (payments + orders + parties for due calc) */
+async function syncOnLoad(){
+  if(!BF.sheetUrl) return;
+  try{ const pays=await API.fetch('getPayments'); if(Array.isArray(pays)){vouchers=pays;localStorage.setItem('bf_payments',JSON.stringify(pays));} }catch(e){}
+  try{ const ords=await API.fetch('getOrders');   if(Array.isArray(ords)){orders=ords;localStorage.setItem('bf_orders',JSON.stringify(ords));} }catch(e){}
+  try{ const pts=await API.fetch('getParties');   if(Array.isArray(pts)){parties=pts;localStorage.setItem('bf_parties',JSON.stringify(pts));} }catch(e){}
+  renderList();updateStats();
+}
+syncOnLoad();
 </script>
 </body>
 </html>
