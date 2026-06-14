@@ -395,6 +395,21 @@ function populatePartyDropdown(selectedId=''){
   if(selectedId)onPartyChange();
 }
 
+/* Sum of standalone voucher adjustments for a party (reduces due like a payment).
+   receipt + payment → credit (reduces due); adjustment → credit reduces, debit increases. */
+function voucherAdjForParty(partyId, excludeId){
+  const vs=JSON.parse(localStorage.getItem('bf_payments')||'[]');
+  let adj=0;
+  vs.forEach(v=>{
+    if(v.partyId!==partyId) return;
+    if(excludeId && v.id===excludeId) return;
+    const amt=parseFloat(v.amount||0);
+    if(v.vtype==='receipt'||v.vtype==='payment') adj+=amt;
+    else if(v.vtype==='adjust') adj+=(v.direction==='debit'?-amt:amt);
+  });
+  return adj;
+}
+
 function onPartyChange(){
   const partyId=document.getElementById('f-party').value;
   const party=parties.find(p=>p.id===partyId);
@@ -407,7 +422,8 @@ function onPartyChange(){
   const opening=parseFloat(party.balance||party.openingBalance||0)||0;
   const billed=partyOrders.reduce((s,o)=>s+parseFloat(o.grandTotal||0),0);
   const paid=partyOrders.reduce((s,o)=>s+parseFloat(o.totalPaid||0),0);
-  const prevDue=opening+billed-paid;
+  const vAdj=voucherAdjForParty(partyId);
+  const prevDue=opening+billed-paid-vAdj;
   setPrevDue(prevDue); buildPrintInvoice(); updateSticky();
 }
 
@@ -651,11 +667,12 @@ async function saveOrder(){
 function updatePartyBalance(partyId){
   const party=parties.find(p=>p.id===partyId)||{};
   const partyOrders=orders.filter(o=>o.partyId===partyId);
-  // currentBalance = opening + total billed − total paid (no carried-forward double-count)
+  // currentBalance = opening + total billed − total paid − voucher adjustments
   const opening=parseFloat(party.balance||party.openingBalance||0)||0;
   const billed=partyOrders.reduce((s,o)=>s+parseFloat(o.grandTotal||0),0);
   const paid=partyOrders.reduce((s,o)=>s+parseFloat(o.totalPaid||0),0);
-  const balance=opening+billed-paid;
+  const vAdj=voucherAdjForParty(partyId);
+  const balance=opening+billed-paid-vAdj;
   const idx=parties.findIndex(p=>p.id===partyId);
   if(idx>-1){parties[idx].currentBalance=balance;localStorage.setItem('bf_parties',JSON.stringify(parties));}
 }
