@@ -202,27 +202,68 @@ function loadFromCache() {
     });
     return c;
   }
-  const allBilled    = orders.reduce((s,o) => s + parseFloat(o.grandTotal||0), 0);
-  const voucherCredit= voucherCreditForType();
-  // মোট বাকি = total billed − total paid in orders − standalone voucher credits
-  const totalDue     = allBilled - totalPaid - voucherCredit;
+  // Split dues & payments by party side.
+  // Customers: sales orders + their vouchers.  Suppliers: purchase orders + their vouchers.
+  const partyTypeById = {};
+  parties.forEach(p => { partyTypeById[p.id] = p.type; });
+  function sideOf(o){
+    // an order's side: sales→customer, purchase→supplier
+    return o.orderType === 'sales' ? 'cust' : 'supp';
+  }
+  let custBilled=0, custPaid=0, suppBilled=0, suppPaid=0;
+  orders.forEach(o=>{
+    const g = parseFloat(o.grandTotal||0), p = parseFloat(o.totalPaid||0);
+    if (sideOf(o)==='cust'){ custBilled+=g; custPaid+=p; }
+    else { suppBilled+=g; suppPaid+=p; }
+  });
+  // vouchers: receipt = customer payment; payment = supplier payment; adjust → follow party type
+  let custVoucher=0, suppVoucher=0;
+  payments.forEach(v=>{
+    const amt=parseFloat(v.amount||0);
+    const signed = (v.vtype==='adjust' && v.direction==='debit') ? -amt : amt;
+    if (v.vtype==='receipt') custVoucher+=signed;
+    else if (v.vtype==='payment') suppVoucher+=signed;
+    else { // adjust → use the party's type
+      const t = partyTypeById[v.partyId];
+      if (t==='supplier') suppVoucher+=signed; else custVoucher+=signed;
+    }
+  });
+  const custDue = custBilled - custPaid - custVoucher;  // customers owe us
+  const suppDue = suppBilled - suppPaid - suppVoucher;  // we owe suppliers
+  const custPaidTotal = custPaid + custVoucher;          // received from customers
+  const suppPaidTotal = suppPaid + suppVoucher;          // paid to suppliers
   // sales-only due (billed − paid for sales orders), for the sub-label under মোট বিক্রয়
   const salesDue     = sales.reduce((s,o)=>s+parseFloat(o.grandTotal||0),0)
                      - sales.reduce((s,o)=>s+parseFloat(o.totalPaid||0),0);
 
-  // Physical stock (on shelf) = (qty in + free in) − (qty out + free out), in pieces
-  let physIn = 0, physOut = 0;
+  // Physical stock (on shelf) per product, then total as ctn + pcs
+  const physMap = {}; // productId → { pieces, cartonSize }
   orders.forEach(o => {
     let items = [];
     try { items = JSON.parse(o.items||'[]'); } catch(e) {}
     items.forEach(it => {
+      if (!it.productId) return;
+      if (!physMap[it.productId]) physMap[it.productId] = { pieces:0, cartonSize:parseFloat(it.cartonSize)||0 };
+      const rec = physMap[it.productId];
+      if (!rec.cartonSize && it.cartonSize) rec.cartonSize = parseFloat(it.cartonSize)||0;
       const qp = parseFloat(it.qtyPieces!==undefined?it.qtyPieces:it.qty)||0;
       const fp = parseFloat(it.freePieces)||0;
-      if (o.orderType === 'purchase') physIn  += (qp + fp);
-      if (o.orderType === 'sales')    physOut += (qp + fp);
+      if (o.orderType === 'purchase') rec.pieces += (qp + fp);
+      if (o.orderType === 'sales')    rec.pieces -= (qp + fp);
     });
   });
-  const physicalStock = physIn - physOut;
+  let physCtn = 0, physPcs = 0;
+  Object.values(physMap).forEach(r => {
+    if (r.cartonSize > 0) {
+      physCtn += Math.floor(r.pieces / r.cartonSize);
+      physPcs += r.pieces % r.cartonSize;
+    } else {
+      physPcs += r.pieces;
+    }
+  });
+  const physicalStock = (physCtn ? physCtn.toLocaleString() + ' ctn' : '')
+    + (physCtn && physPcs ? ' + ' : '')
+    + (physPcs || !physCtn ? physPcs + ' pcs' : '');
 
   document.getElementById('stat-parties').textContent   = parties.length;
   document.getElementById('stat-products').textContent  = products.filter(p=>p.status==='active').length;
@@ -230,9 +271,13 @@ function loadFromCache() {
   document.getElementById('stat-purchases').textContent = purchases.length;
   document.getElementById('stat-sales-total').textContent = fmt.currency(salesTotal);
   document.getElementById('stat-sales-due').textContent   = `বাকি: ${fmt.currency(salesDue)}`;
-  document.getElementById('stat-total-paid').textContent  = fmt.currency(totalPaid);
-  document.getElementById('stat-total-due').textContent   = fmt.currency(totalDue);
-  document.getElementById('stat-physical-stock').textContent = physicalStock.toLocaleString() + ' pcs';
+  document.getElementById('stat-total-paid').innerHTML =
+    `<span style="font-size:14px">গ্রাহক: ${fmt.currency(custPaidTotal)}</span><br>` +
+    `<span style="font-size:14px;color:var(--ink2)">সরবরাহকারী: ${fmt.currency(suppPaidTotal)}</span>`;
+  document.getElementById('stat-total-due').innerHTML =
+    `<span style="font-size:14px;color:var(--danger)">গ্রাহক: ${fmt.currency(custDue)}</span><br>` +
+    `<span style="font-size:14px;color:var(--ink2)">সরবরাহকারী: ${fmt.currency(suppDue)}</span>`;
+  document.getElementById('stat-physical-stock').textContent = physicalStock;
 
   // Recent sales (last 5)
   renderRecentOrders(sales.slice(0,5),   'recent-sales');
